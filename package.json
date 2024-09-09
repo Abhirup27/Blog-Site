@@ -1,0 +1,26 @@
+{
+  "name": "blog-site",
+  "version": "1.0.0",
+  "description": "A blog website creating using nodejs, expressjs, ejs as backend",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Abhirup27/Blog-Site.git"
+  },
+  "author": "Abhirup Bhattacharyya",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Abhirup27/Blog-Site/issues"
+  },
+  "homepage": "https://github.com/Abhirup27/Blog-Site#readme",
+  "dependencies": {
+    "deps": "^1.0.0",
+    "ejs": "^3.1.10",
+    "express": "^4.19.2",
+    "json": "^11.0.0"
+  }
+}
