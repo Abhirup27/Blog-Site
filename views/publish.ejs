@@ -1,0 +1,8 @@
+<%- include("partials/header.ejs") %>
+<form action="/publish" method="post">
+    <input type="text" class="form-control" name="Title" placeholder="Title heading" required="" autofocus="" id="">
+    <input type="text" class="form-control" name="Body" placeholder="Body" required="" autofocus="" id="">
+    <button class="btn btn-lg btn-primary btn-block" type="submit">Publish</button>
+</form>
+
+<%- include("partials/footer.ejs") %>

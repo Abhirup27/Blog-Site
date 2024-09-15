@@ -37,12 +37,12 @@ app.use(bodyparser.urlencoded({ extended: true }));
 
 app.get("/", (req,res) =>
 {
-    const ipAddress = getClientIp(req);
+    let ipAddress = getClientIp(req);
     console.log(req.sessionID)
-    const user = users.find(u=>u.session == req.sessionID && u.lastLoginIp == ipAddress);
+    let user = users.find(u=>u.session == req.sessionID && u.lastLoginIp == ipAddress);
     if (user) {
         //res.send('Login successful!');
-        res.render("posts.ejs", {posts:user.posts});
+        res.render("posts.ejs", {posts:user.posts,  logged:true});
     }
     else
     {
@@ -68,7 +68,8 @@ app.post('/login', (req, res) => {
     if (user) {
         user.lastLoginIp = ipAddress;
         user.session = req.sessionID;
-        res.send('Login successful!');
+        res.render("posts.ejs", {posts:user.posts, logged:true});
+        //res.send('Login successful!');
 
     } else {
         res.status(401).send('Invalid username or password');
@@ -78,4 +79,47 @@ app.post('/login', (req, res) => {
 app.listen(port, () =>
 {
     console.log(`Server started at port ${port}`);
+});
+
+app.get("/logout", (req, res) => {
+    const ipAddress = getClientIp(req);
+    console.log(req.sessionID)
+    let user = users.find(u=>u.session == req.sessionID && u.lastLoginIp == ipAddress);
+    if (user) {
+        //res.send('Login successful!');
+        user.session = ""
+        user.lastLoginIp= ""
+        res.render("index.ejs", { logged: false, message: "Logged out successfully!" });
+    }
+    else
+    {
+        res.render("index.ejs", { message: "No active session found." });
+    }
+    // res.send("Logged out!");
+});
+
+app.post("/publish", (req, res) => {
+     const ipAddress = getClientIp(req);
+    console.log(req.sessionID)
+    let user = users.find(u=>u.session == req.sessionID && u.lastLoginIp == ipAddress);
+    if (user) {
+        
+        if (req.body.Title) {
+            const newPost = {
+                title: req.body.Title,
+                content: req.body.Body
+            };
+            user.posts.push(newPost);
+            user.updatedAt = new Date().toISOString();
+            res.render("posts.ejs", { posts:user.posts, logged: true, message: "Post published successfully!" });
+        }
+        else {
+            res.render("publish.ejs", { logged: true });
+        }
+    }
+    else
+    {
+        res.render("index.ejs");
+    }
+
 });

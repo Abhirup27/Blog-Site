@@ -1,5 +1,7 @@
 <%- include("partials/header.ejs") %>
-<button class="btn btn-lg btn-primary btn-block" type="submit">New Post</button>
+<form action="/publish" method="post">
+    <button class="btn btn-lg btn-primary btn-block" type="submit">New Post</button>
+</form>
 <% if (locals.posts) { %>
 <% for( let index = 0; index < posts.length; index++ ) { %>
 <h2><%=posts[index].title %></h2>

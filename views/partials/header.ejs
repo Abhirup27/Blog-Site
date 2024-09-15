@@ -31,9 +31,16 @@
         <li class="nav-item">
           <a class="nav-link" href="/about"><i class="far fa-clone"></i>About</a>
         </li>
+        <% if (locals.logged) { %>
+        <% if (logged==true) { %>
         <li class="nav-item">
-          <a class="nav-link" href="/contact"><i class="far fa-calendar-alt"></i>Contact</a>
+          <a class="nav-link" href="/logout"><i class="far fa-calendar-alt"></i>Log Out</a>
         </li>
+
+        <% } %>
+
+        <% } %>
+
 
       </ul>
     </div>
