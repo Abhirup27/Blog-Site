@@ -13,7 +13,7 @@
 </head>
 <header>
   <nav class="navbar navbar-expand-custom navbar-mainbg">
-    <a class="navbar-brand navbar-logo" href="#">My Blog</a>
+    <a class="navbar-brand navbar-logo" href="/">My Blog</a>
     <button class="navbar-toggler" type="button" aria-controls="navbarSupportedContent" aria-expanded="false"
       aria-label="Toggle navigation">
       <i class="fas fa-bars text-white"></i>
@@ -45,5 +45,20 @@
       </ul>
     </div>
   </nav>
+  <% if (locals.message) { %>
+  <div id="messageBar" class="navbar navbar-light bg-danger message-bar">
+    <span class="navbar-text text-white message-text"><%= message %></span>
+  </div>
+  <script>
+    // messageBar.style.display = 'flex';
+    setTimeout(function () {
+      var messageBar = document.getElementById('messageBar');
+      messageBar.style.opacity = '0';
+      setTimeout(function () {
+        // messageBar.style.display = 'none';
+      }, 500);
+    }, 5000);
+  </script>
+  <% } %>
 </header>
 <main class="container">

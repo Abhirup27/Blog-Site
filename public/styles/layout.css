@@ -331,3 +331,11 @@ body {
 	  border-top-right-radius: 0;
 	}
 }
+.message-bar {
+      transition: opacity 0.5s ease-in-out;
+    }
+
+.message-text {
+  width: 100%;
+  text-align: center;
+}
