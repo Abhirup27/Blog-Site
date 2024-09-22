@@ -339,3 +339,8 @@ body {
   width: 100%;
   text-align: center;
 }
+
+#content {
+   text-align: justify;
+  text-justify: inter-word;
+}

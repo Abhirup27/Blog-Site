@@ -1,0 +1,13 @@
+<%- include("partials/header.ejs") %>
+
+<% if (locals.logged && locals.editable) { %>
+<% if (logged && editable) { %>
+    <a href="/posts/<%= post.id %>/edit">Edit Post</a>
+<% } %>
+<% } %>
+<% if (locals.post) { %>
+ <h2><%= post.title %> </h2>
+ <p id="content" align="justify"><%= post.content %> </p>
+<% } %>
+
+<%- include("partials/footer.ejs") %>

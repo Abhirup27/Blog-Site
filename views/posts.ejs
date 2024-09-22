@@ -4,8 +4,7 @@
 </form>
 <% if (locals.posts) { %>
 <% for( let index = 0; index < posts.length; index++ ) { %>
-<h2><%=posts[index].title %></h2>
-<p><%= posts[index].content %> </p>
+<h2><a href="/posts/<%= posts[index].id %>"><%= posts[index].title %></a></h2>
 <% } %>
 <% } %>
 
