@@ -182,7 +182,29 @@ app.get("/posts/:id", (req, res) => {
 
 });
 
+app.get("/posts/:id/edit", (req, res) => {
+    const postId = req.params.id;
+    const ipAddress = getClientIp(req);
+    const userReq = users.find(u => u.session === req.sessionID && u.lastLoginIp === ipAddress);
 
+    let foundPost = null;
+    let isEditable = false;
+
+    for (const user of users) {
+        const post = user.posts.find(p => p.id === postId);
+        if (post) {
+            foundPost = post;
+            isEditable = userReq && user.id === userReq.id;
+            break;
+        }
+    }
+
+    if (!foundPost || !isEditable) {
+        return res.status(404).send("Post not found or you don't have the priviledges to edit it.");
+    }
+    res.render("publish.ejs",{logged:true, editable:isEditable, post:foundPost})
+
+});
 app.post("/update", (req, res) => {
 
 
