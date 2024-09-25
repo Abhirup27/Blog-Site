@@ -5,8 +5,22 @@ import {
     v4 as uuid
 } from 'uuid';
 import session from "express-session";
+import crypto from "crypto";
+import cookieParser from "cookie-parser";
 
+function generateUUID(username, id, postTitle)
+{
+   // const namespace = "Roop";
+    const hash = crypto.createHash('sha1');
+    hash.update(username, id,postTitle);
+    const uuid = hash.digest('hex');
 
+    return uuid;
+}
+
+//TODO: make a sidebar which shows recent published posts. It can use socket io to communicate in different protocol and PORT, to update in realtime(not by page refresh)
+// Make the posts privatable 
+// imp make a database schema. connect it with nodejs. Three ways, sqlite. Mariadb with the server on the same machine, or on different machine with an open PORT. Need to make dockerimage for that too.       
 let users = [{
     id: "1",
     username: "admin",
@@ -15,8 +29,8 @@ let users = [{
     lastLoginIp: "",
     session: "",
     posts: [{
-        id: uuid(),
         title: "TEST",
+        id: uuid(),
         content: "This is a sample text."
     }],
     createdAt: "2024-09-14T12:00:00Z",
@@ -45,9 +59,17 @@ app.use(bodyparser.urlencoded({
     extended: true
 }));
 
+app.use(cookieParser());
+
 app.get("/", (req, res) => {
+    const string1 = "example string";
+console.log(generateUUID(string1));
+console.log(generateUUID(string1)); // This will produce the same UUID
+
+const string2 = "another string";
+console.log(generateUUID(string2)); // This will produce a different UUID
     let ipAddress = getClientIp(req);
-    console.log(req.sessionID)
+    //console.log(req.sessionID)
     let user = users.find(u => u.session == req.sessionID && u.lastLoginIp == ipAddress);
     if (user) {
         //res.send('Login successful!');
@@ -130,7 +152,7 @@ app.post("/publish", (req, res) => {
 
         if (req.body.Title) {
             const newPost = {
-                id: uuid(),
+                id: generateUUID(user.username, user.id, req.body.Title),
                 title: req.body.Title,
                 content: req.body.Body
             };
@@ -202,10 +224,68 @@ app.get("/posts/:id/edit", (req, res) => {
     if (!foundPost || !isEditable) {
         return res.status(404).send("Post not found or you don't have the priviledges to edit it.");
     }
+
+    //I am sending the post ID to the client as a cookie here
+    // the other way to do this is maybe by generating persistent/ consistent UUIDs by combining the userid and the postid(random numbers and strings), then when the user submits,...
+    res.cookie('editingPostId', postId, {
+        maxAge: 3600000,
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict'
+    });
     res.render("publish.ejs",{logged:true, editable:isEditable, post:foundPost})
 
 });
+
+function updatePost(user, postId, newTitle, newContent)
+{
+    const postIndex = user.posts.findIndex(post => post.id === postId);
+    if (postIndex !== -1)
+    {
+        user.posts[postIndex].title = newTitle;
+        user.posts[postIndex].content = newContent;
+        user.posts[postIndex].updatedAt = new Date().toISOString();
+        return true;
+    }
+    return false;
+}
 app.post("/update", (req, res) => {
+    //check if post id already exists in the DB, then make changes.
+    // remember to change the modified at field
+    
+    const ipAddress = getClientIp(req);
+    let user = users.find(u => u.session == req.sessionID && u.lastLoginIp == ipAddress);
+
+    if (user)
+    {
+        const { Title, Body } = req.body;
+        const postId = req.cookies.editingPostId;
+
+        if (postId && Title && Body) {
+            if (updatePost(user, postId, Title, Body))
+            {
+                user.updatedAt = new Date().toISOString();
+
+                res.clearCookie('editingPostId');
+                res.render("posts.ejs", {
+                    posts: user.posts,
+                    logged: true,
+                    message: "Post updated successfully!"
+                });
+
+            }
+            else {
+                res.status(404).send("post not found");
+            }
+        }
+        else {
+            res.status(400).send("Missing Required fields");
+        }
+    } else {
+        res.render("index.ejs");
+    }
+    
+    
 
 
 });

@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/Abhirup27/Blog-Site#readme",
   "dependencies": {
+    "cookie-parser": "^1.4.6",
     "ejs": "^3.1.10",
     "express": "^4.19.2",
     "express-session": "^1.18.0",
