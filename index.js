@@ -12,10 +12,15 @@ function generateUUID(username, id, postTitle)
 {
    // const namespace = "Roop";
     const hash = crypto.createHash('sha1');
-    hash.update(username, id,postTitle);
+    
+    // Concatenate the inputs into a single string
+    const data = `${username}${id}${postTitle}`;
+    
+    hash.update(data);
     const uuid = hash.digest('hex');
-
-    return uuid;
+    
+    // Format as UUID
+    return `${uuid.substr(0,8)}-${uuid.substr(8,4)}-${uuid.substr(12,4)}-${uuid.substr(16,4)}-${uuid.substr(20,12)}`;
 }
 
 //TODO: make a sidebar which shows recent published posts. It can use socket io to communicate in different protocol and PORT, to update in realtime(not by page refresh)
@@ -51,9 +56,10 @@ app.use(session({
     saveUninitialized: false,
     cookie: {
         secure: false,
-        expires: 60000
+        expires: 7200000  // ~ 2 hours
     }
 }));
+app.use(express.json());
 app.use(express.static("public"));
 app.use(bodyparser.urlencoded({
     extended: true
@@ -151,6 +157,7 @@ app.post("/publish", (req, res) => {
     if (user) {
 
         if (req.body.Title) {
+            console.log(req.body.Title)
             const newPost = {
                 id: generateUUID(user.username, user.id, req.body.Title),
                 title: req.body.Title,
@@ -228,7 +235,7 @@ app.get("/posts/:id/edit", (req, res) => {
     //I am sending the post ID to the client as a cookie here
     // the other way to do this is maybe by generating persistent/ consistent UUIDs by combining the userid and the postid(random numbers and strings), then when the user submits,...
     res.cookie('editingPostId', postId, {
-        maxAge: 3600000,
+        maxAge: 3600000, //~ 1 hour
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict'
@@ -249,6 +256,19 @@ function updatePost(user, postId, newTitle, newContent)
     }
     return false;
 }
+
+function deletePost(user, postId)
+{
+    const postIndex = user.posts.findIndex(post => post.id === postId);
+    if (postIndex !== -1)
+    {
+        user.posts.splice(postIndex, 1);
+        user.updatedAt = new Date().toISOString();
+        return true;
+    }
+    return false;
+}
+
 app.post("/update", (req, res) => {
     //check if post id already exists in the DB, then make changes.
     // remember to change the modified at field
@@ -288,4 +308,64 @@ app.post("/update", (req, res) => {
     
 
 
+});
+
+app.post("/delete-post", (req, res) => {
+    const ipAddress = getClientIp(req);
+    let user = users.find(u => u.session == req.sessionID && u.lastLoginIp == ipAddress);
+
+    if (user)
+    {
+        // const postId = req.body.postId;
+        // if (postId)
+        // {
+        //     if (deletePost(user, postId))
+        //     {
+        //         res.render("posts.ejs", {
+        //             posts: user.posts,
+        //             logged: true,
+        //             message: "Post deleted successfully!"
+        //         });
+        //     }
+        //     else {
+        //         res.status(404).send("Post not found!");
+        //     }
+        // }
+        // else
+        // {
+        //     res.status(400).send("Missing post ID!");
+        // }
+
+          const postId = req.body.postId;
+        console.log('Received postId:', postId);
+
+        if (postId) {
+            // Check if the post belongs to the user
+            const postExists = user.posts.some(post => post.id === postId);
+            if (postExists) {
+                if (deletePost(user, postId)) {
+                    // Render the posts page with a success message
+                    res.render("posts.ejs", {
+                        posts: user.posts,
+                        logged: true,
+                        message: "Post deleted successfully!"
+                    });
+                } else {
+                    // Render the posts page with an error message
+                    res.render("posts.ejs", {
+                        posts: user.posts,
+                        logged: true,
+                        message: "Failed to delete post"
+                    });
+                }
+            } else {
+                res.status(403).send("You don't have permission to delete this post" );
+            }
+        } else {
+            res.status(400).send("Missing post ID" );
+        }
+    }
+    else {
+        res.status(401).send("User not authorized");
+    }
 });
