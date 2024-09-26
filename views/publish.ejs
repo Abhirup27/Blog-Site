@@ -4,6 +4,6 @@
         value="<%= (locals.post && locals.logged && locals.editable) ? post.title : '' %>">
     <input type="text" class="form-control" name="Body" placeholder="Body" required autofocus
         value="<%= (locals.post && locals.logged && locals.editable) ? post.content : '' %>">
-    <button class="btn btn-lg btn-primary btn-block" type="submit">Publish</button>
+    <button class="btn btn-lg btn-primary btn-block" type="submit"><% if (locals.post) { %>Update<% } else {%>Publish<%}%></button>
 </form>
 <%- include("partials/footer.ejs") %>

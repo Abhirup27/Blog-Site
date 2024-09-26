@@ -165,11 +165,12 @@ app.post("/publish", (req, res) => {
             };
             user.posts.push(newPost);
             user.updatedAt = new Date().toISOString();
-            res.render("posts.ejs", {
-                posts: user.posts,
-                logged: true,
-                message: "Post published successfully!"
-            });
+            // res.render("posts.ejs", {
+            //     posts: user.posts,
+            //     logged: true,
+            //     message: "Post published successfully!"
+            // });
+            res.redirect(303, '/published?success=true');
         } else {
             res.render("publish.ejs", {
                 logged: true
@@ -345,18 +346,22 @@ app.post("/delete-post", (req, res) => {
             if (postExists) {
                 if (deletePost(user, postId)) {
                     // Render the posts page with a success message
-                    res.render("posts.ejs", {
-                        posts: user.posts,
-                        logged: true,
-                        message: "Post deleted successfully!"
-                    });
+                    // res.render("posts.ejs", {
+                    //     posts: user.posts,
+                    //     logged: true,
+                    //     message: "Post deleted successfully!"
+                    // });
+
+                    res.redirect(303, "/deleted?success=true"); 
                 } else {
                     // Render the posts page with an error message
-                    res.render("posts.ejs", {
-                        posts: user.posts,
-                        logged: true,
-                        message: "Failed to delete post"
-                    });
+                    // res.render("posts.ejs", {
+                    //     posts: user.posts,
+                    //     logged: true,
+                    //     message: "Failed to delete post"
+                    // });
+
+                    res.redirect(303, "/deleted?success=false"); //change this such that the page stays on the current one but displays the message.
                 }
             } else {
                 res.status(403).send("You don't have permission to delete this post" );
@@ -368,4 +373,67 @@ app.post("/delete-post", (req, res) => {
     else {
         res.status(401).send("User not authorized");
     }
+});
+
+// ?success=true
+app.get("/published", (req, res) => {
+
+     const ipAddress = getClientIp(req);
+    console.log(req.sessionID)
+    let user = users.find(u => u.session == req.sessionID && u.lastLoginIp == ipAddress);
+      const postsWithoutContent = user.posts.map(post => ({
+            id: post.id,
+            title: post.title
+
+        }));
+    if (req.query.success == 'true')
+    {
+        res.render("posts.ejs", { posts: postsWithoutContent,logged: true, message: "Post has been published successfully!" }); 
+    }
+    else
+    {
+            res.render("posts.ejs", { posts: postsWithoutContent,logged: true, message: "Post failed to publish!" }); 
+    }
+   
+
+});
+
+app.get("/deleted", (req, res) => {
+        const ipAddress = getClientIp(req);
+    console.log(req.sessionID)
+    let user = users.find(u => u.session == req.sessionID && u.lastLoginIp == ipAddress);
+      const postsWithoutContent = user.posts.map(post => ({
+            id: post.id,
+            title: post.title
+
+        }));
+    if (req.query.success == 'true')
+    {
+        res.render("posts.ejs", { posts: postsWithoutContent,logged: true, message: "Post has been removed." }); 
+    }
+    else
+    {
+            res.render("posts.ejs", { posts: postsWithoutContent,logged: true, message: "Post failed to delete!" }); 
+    }
+
+});
+
+app.get("/updated", (req, res) => {
+           const ipAddress = getClientIp(req);
+    console.log(req.sessionID)
+    let user = users.find(u => u.session == req.sessionID && u.lastLoginIp == ipAddress);
+      const postsWithoutContent = user.posts.map(post => ({
+            id: post.id,
+            title: post.title
+
+        }));
+    if (req.query.success == 'true')
+    {
+        res.render("posts.ejs", { posts: postsWithoutContent,logged: true, message: "Post has been updated." }); 
+    }
+    else
+    {
+            res.render("posts.ejs", { posts: postsWithoutContent,logged: true, message: "Post failed to update!" }); 
+    }
+
 });

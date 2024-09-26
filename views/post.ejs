@@ -11,47 +11,6 @@
  <p id="content" align="justify"><%= post.content %> </p>
 <% } %>
 
-<script>
-    function deletePost(postId)
-    {
-        console.log(postId);
-        if(confirm('Are you sure you want to delete this post?'))
-        {
-            // fetch('/delete-post',{
-
-            //     method: 'post',
-            //     headers: {
-            //         'Content-Type': 'application/json',
-            //     },
-            //     body: JSON.stringify({ postId: postId }),
-            // })
-            // .then(response => response.json())
-            // .then(data => {
-            //     if (data.success) {
-            //         alert(data.message);
-            //         location.reload(); // Reload the page to reflect the changes
-            //     } else {
-            //         alert('Error: ' + data.message);
-            //     }
-            // })
-            // .catch((error) => {
-            //     console.error('Error:', error);
-            //     alert('An error occurred while deleting the post');
-            // });
-            const form = document.createElement('form');
-            const input = document.createElement('input');
-            form.method='POST';
-            form.action='/delete-post';
-            input.type='hidden';
-            input.name= 'postId';
-            input.value=postId;
-
-            form.appendChild(input);
-            document.body.appendChild(form);
-
-            form.submit();
-        }
-    }
-</script>
+<%- include ("partials/deletePost.ejs") %> 
 
 <%- include("partials/footer.ejs") %>
