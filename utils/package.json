@@ -1,0 +1,11 @@
+{
+  "name": "date-utils",
+  "description": "process dates",
+  "version": "1.0",
+  "license": "MIT",
+  "repository": "utils",
+  "type": "module",
+  "files": [
+    "dateUtils.js"
+  ]
+}

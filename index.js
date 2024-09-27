@@ -1,5 +1,6 @@
 import express from "express";
 import bodyparser from "body-parser";
+import { formatDate } from "./utils/dateUtils.js"; // need to see how  to remove the .js
 import json from "json";
 import {
     v4 as uuid
@@ -71,10 +72,10 @@ app.use(express.json());
 
 app.use(express.static("public"));
 
-app.set('views', [
-join(__dirname, 'views'),
-join(__dirname, 'utils')
-]);
+// app.set('views', [
+// join(__dirname, 'views'),
+// join(__dirname, 'utils')
+// ]);
 
 app.use(bodyparser.urlencoded({
     extended: true
@@ -135,7 +136,8 @@ app.post('/login', (req, res) => {
         }));
         res.render("posts.ejs", {
             posts: postsWithoutContent,
-            logged: true
+            logged: true,
+            formatDate: formatDate
         });
         //res.send('Login successful!');
 
@@ -311,7 +313,8 @@ app.post("/update", (req, res) => {
                 res.render("posts.ejs", {
                     posts: user.posts,
                     logged: true,
-                    message: "Post updated successfully!"
+                    message: "Post updated successfully!",
+                    formatDate: formatDate
                 });
 
             }
@@ -410,11 +413,11 @@ app.get("/published", (req, res) => {
         }));
     if (req.query.success == 'true')
     {
-        res.render("posts.ejs", { posts: postsWithoutContent,logged: true, message: "Post has been published successfully!" }); 
+        res.render("posts.ejs", { posts: postsWithoutContent,logged: true, message: "Post has been published successfully!", formatDate: formatDate }); 
     }
     else
     {
-            res.render("posts.ejs", { posts: postsWithoutContent,logged: true, message: "Post failed to publish!" }); 
+            res.render("posts.ejs", { posts: postsWithoutContent,logged: true, message: "Post failed to publish!", formatDate: formatDate }); 
     }
    
 
@@ -431,11 +434,11 @@ app.get("/deleted", (req, res) => {
         }));
     if (req.query.success == 'true')
     {
-        res.render("posts.ejs", { posts: postsWithoutContent,logged: true, message: "Post has been removed." }); 
+        res.render("posts.ejs", { posts: postsWithoutContent,logged: true, message: "Post has been removed.",formatDate: formatDate }); 
     }
     else
     {
-            res.render("posts.ejs", { posts: postsWithoutContent,logged: true, message: "Post failed to delete!" }); 
+            res.render("posts.ejs", { posts: postsWithoutContent,logged: true, message: "Post failed to delete!",formatDate: formatDate }); 
     }
 
 });
@@ -451,11 +454,11 @@ app.get("/updated", (req, res) => {
         }));
     if (req.query.success == 'true')
     {
-        res.render("posts.ejs", { posts: postsWithoutContent,logged: true, message: "Post has been updated." }); 
+        res.render("posts.ejs", { posts: postsWithoutContent,logged: true, message: "Post has been updated.",formatDate: formatDate }); 
     }
     else
     {
-            res.render("posts.ejs", { posts: postsWithoutContent,logged: true, message: "Post failed to update!" }); 
+            res.render("posts.ejs", { posts: postsWithoutContent,logged: true, message: "Post failed to update!",formatDate: formatDate }); 
     }
 
 });
