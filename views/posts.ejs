@@ -6,6 +6,7 @@
     <% for( let index = 0; index < posts.length; index++ ) { %>
         <div class="d-flex justify-content-between align-items-center mt-3">
             <h3><a href="/posts/<%= posts[index].id %>"><%= posts[index].title %></a></h3>
+            <p><%= formatDate(posts[index].createdAt) %> </p>
             <div class="dropdown">
                 <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton<%= index %>" data-bs-toggle="dropdown" aria-expanded="false">
                     Options
@@ -13,7 +14,7 @@
                 <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton<%= index %>">
                     <li><a class="dropdown-item" href="/posts/<%= posts[index].id %>">View</a></li>
                     <li><a class="dropdown-item" href="/posts/<%= posts[index].id %>/edit">Edit</a></li>
-                    <li><a class="dropdown-item" href="#" onclick="deletePost('<%= posts[index].id %>'); return false;">Delete</a></li>
+                    <li><a class="dropdown-item" href="#" onclick="deletePost('<%= posts[index].id %>')">Delete</a></li>
                 </ul>
             </div>
         </div>

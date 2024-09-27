@@ -7,6 +7,10 @@ import {
 import session from "express-session";
 import crypto from "crypto";
 import cookieParser from "cookie-parser";
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 function generateUUID(username, id, postTitle)
 {
@@ -25,7 +29,7 @@ function generateUUID(username, id, postTitle)
 
 //TODO: make a sidebar which shows recent published posts. It can use socket io to communicate in different protocol and PORT, to update in realtime(not by page refresh)
 // Make the posts privatable 
-// imp make a database schema. connect it with nodejs. Three ways, sqlite. Mariadb with the server on the same machine, or on different machine with an open PORT. Need to make dockerimage for that too.       
+     
 let users = [{
     id: "1",
     username: "admin",
@@ -36,7 +40,9 @@ let users = [{
     posts: [{
         title: "TEST",
         id: uuid(),
-        content: "This is a sample text."
+        content: "This is a sample text.",
+        createdAt: "2024-09-14T12:00:00Z",
+        updatedAt: "2024-09-14T12:00:00Z"
     }],
     createdAt: "2024-09-14T12:00:00Z",
     updatedAt: "2024-09-14T12:00:00Z"
@@ -59,13 +65,24 @@ app.use(session({
         expires: 7200000  // ~ 2 hours
     }
 }));
+
+//==========SETTING UP EXPRESSJS===========//
 app.use(express.json());
+
 app.use(express.static("public"));
+
+app.set('views', [
+join(__dirname, 'views'),
+join(__dirname, 'utils')
+]);
+
 app.use(bodyparser.urlencoded({
     extended: true
 }));
 
 app.use(cookieParser());
+
+//==========SETTING UP EXPRESSJS===========//
 
 app.get("/", (req, res) => {
     const string1 = "example string";
@@ -112,7 +129,8 @@ app.post('/login', (req, res) => {
 
         const postsWithoutContent = user.posts.map(post => ({
             id: post.id,
-            title: post.title
+            title: post.title,
+            createdAt: post.createdAt
 
         }));
         res.render("posts.ejs", {
@@ -161,7 +179,9 @@ app.post("/publish", (req, res) => {
             const newPost = {
                 id: generateUUID(user.username, user.id, req.body.Title),
                 title: req.body.Title,
-                content: req.body.Body
+                content: req.body.Body,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
             };
             user.posts.push(newPost);
             user.updatedAt = new Date().toISOString();
@@ -383,7 +403,9 @@ app.get("/published", (req, res) => {
     let user = users.find(u => u.session == req.sessionID && u.lastLoginIp == ipAddress);
       const postsWithoutContent = user.posts.map(post => ({
             id: post.id,
-            title: post.title
+          title: post.title,
+          createdAt: post.createdAt,
+            modifiedAt:post.modifiedAt
 
         }));
     if (req.query.success == 'true')

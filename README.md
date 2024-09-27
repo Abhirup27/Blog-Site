@@ -52,3 +52,16 @@ I have also included a dockerfile which you can use to create an image and run a
    ```
 
 After running these commands, you can access the blog website by opening a web browser and navigating to `http://localhost:8080`.
+
+## To Do
+
+- Connect to a SQL server and make data persistent.
+- Configure the dockerfile to work with mariadb server.
+- View the blog entries date wise
+- Arrange by most recent, oldest, relevant(search)
+- Implement a search engine(queries the server using a different protocol).
+- Add the option to make posts private.
+- Enable adding images to the text.
+- In the future, markdown support.
+- Improve the UI. Describe what the app is about in the home page.
+- Make a sidebar which shows recent public posts. It can use socket io to communicate in different protocol, to update in realtime(not by page refresh)
