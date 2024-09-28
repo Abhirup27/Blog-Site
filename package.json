@@ -24,6 +24,7 @@
     "express": "^4.19.2",
     "express-session": "^1.18.0",
     "json": "^11.0.0",
-    "uuid": "^10.0.0"
+    "uuid": "^10.0.0",
+    "utils": "file:utils"
   }
 }

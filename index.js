@@ -1,6 +1,7 @@
 import express from "express";
 import bodyparser from "body-parser";
-import { formatDate } from "./utils/dateUtils.js"; // need to see how  to remove the .js
+import { formatDate } from "utils/dateUtils";
+import { findUser } from "utils/userIdentification";
 import json from "json";
 import {
     v4 as uuid
@@ -92,9 +93,12 @@ console.log(generateUUID(string1)); // This will produce the same UUID
 
 const string2 = "another string";
 console.log(generateUUID(string2)); // This will produce a different UUID
-    let ipAddress = getClientIp(req);
+    //let ipAddress = getClientIp(req);
     //console.log(req.sessionID)
-    let user = users.find(u => u.session == req.sessionID && u.lastLoginIp == ipAddress);
+    //let user = users.find(u => u.session == req.sessionID && u.lastLoginIp == ipAddress);
+    let headers = req.headers;
+    let socket = req.socket;
+    let user = findUser(users, { headers, socket }, req.sessionID)
     if (user) {
         //res.send('Login successful!');
         res.render("posts.ejs", {
@@ -119,7 +123,8 @@ app.post('/login', (req, res) => {
     } = req.body;
 
     // Find the user
-    let user = users.find(u => u.username === username && u.password === password);
+    //let user = users.find(u => u.username === username && u.password === password); // 
+    let user = findUser(users, undefined, undefined, { username, password });
     req.session.username = req.sessionID;
     console.log(req.sessionID)
     const ipAddress = getClientIp(req);
@@ -171,9 +176,10 @@ app.get("/logout", (req, res) => {
 });
 
 app.post("/publish", (req, res) => {
-    const ipAddress = getClientIp(req);
-    console.log(req.sessionID)
-    let user = users.find(u => u.session == req.sessionID && u.lastLoginIp == ipAddress);
+
+    const headers = req.headers;
+    const socket = req.socket;
+    let user = findUser(users, { headers, socket }, req.sessionID)
     if (user) {
 
         if (req.body.Title) {
@@ -205,10 +211,12 @@ app.post("/publish", (req, res) => {
 });
 
 app.get("/posts/:id", (req, res) => {
-  const postId = req.params.id;
-    const ipAddress = getClientIp(req);
-    const userReq = users.find(u => u.session === req.sessionID && u.lastLoginIp === ipAddress);
 
+    let headers = req.headers;
+    let socket = req.socket;
+    const userReq = findUser(users, { headers, socket }, req.sessionID)
+ 
+    const postId = req.params.id;
     let foundPost = null;
     let isEditable = false;
 
@@ -235,10 +243,11 @@ app.get("/posts/:id", (req, res) => {
 });
 
 app.get("/posts/:id/edit", (req, res) => {
-    const postId = req.params.id;
-    const ipAddress = getClientIp(req);
-    const userReq = users.find(u => u.session === req.sessionID && u.lastLoginIp === ipAddress);
+    let headers = req.headers;
+    let socket = req.socket;
+    const userReq = findUser(users, { headers, socket }, req.sessionID)
 
+    const postId = req.params.id;
     let foundPost = null;
     let isEditable = false;
 
@@ -296,8 +305,9 @@ app.post("/update", (req, res) => {
     //check if post id already exists in the DB, then make changes.
     // remember to change the modified at field
     
-    const ipAddress = getClientIp(req);
-    let user = users.find(u => u.session == req.sessionID && u.lastLoginIp == ipAddress);
+    const headers = req.headers;
+    const socket = req.socket;
+    let user = findUser(users, { headers, socket }, req.sessionID)
 
     if (user)
     {
@@ -335,8 +345,9 @@ app.post("/update", (req, res) => {
 });
 
 app.post("/delete-post", (req, res) => {
-    const ipAddress = getClientIp(req);
-    let user = users.find(u => u.session == req.sessionID && u.lastLoginIp == ipAddress);
+    const headers = req.headers;
+    const socket = req.socket;
+    let user = findUser(users, { headers, socket }, req.sessionID)
 
     if (user)
     {
@@ -401,9 +412,9 @@ app.post("/delete-post", (req, res) => {
 // ?success=true
 app.get("/published", (req, res) => {
 
-     const ipAddress = getClientIp(req);
-    console.log(req.sessionID)
-    let user = users.find(u => u.session == req.sessionID && u.lastLoginIp == ipAddress);
+    const headers = req.headers;
+    const socket = req.socket;
+    let user = findUser(users, { headers, socket }, req.sessionID)
       const postsWithoutContent = user.posts.map(post => ({
             id: post.id,
           title: post.title,
@@ -424,9 +435,9 @@ app.get("/published", (req, res) => {
 });
 
 app.get("/deleted", (req, res) => {
-        const ipAddress = getClientIp(req);
-    console.log(req.sessionID)
-    let user = users.find(u => u.session == req.sessionID && u.lastLoginIp == ipAddress);
+    const headers = req.headers;
+    const socket = req.socket;
+    let user = findUser(users, { headers, socket }, req.sessionID)
       const postsWithoutContent = user.posts.map(post => ({
             id: post.id,
             title: post.title
@@ -434,6 +445,7 @@ app.get("/deleted", (req, res) => {
         }));
     if (req.query.success == 'true')
     {
+        console.log(postsWithoutContent.length)
         res.render("posts.ejs", { posts: postsWithoutContent,logged: true, message: "Post has been removed.",formatDate: formatDate }); 
     }
     else
@@ -444,9 +456,9 @@ app.get("/deleted", (req, res) => {
 });
 
 app.get("/updated", (req, res) => {
-           const ipAddress = getClientIp(req);
-    console.log(req.sessionID)
-    let user = users.find(u => u.session == req.sessionID && u.lastLoginIp == ipAddress);
+    const headers = req.headers;
+    const socket = req.socket;
+    let user = findUser(users, { headers, socket }, req.sessionID)
       const postsWithoutContent = user.posts.map(post => ({
             id: post.id,
             title: post.title
