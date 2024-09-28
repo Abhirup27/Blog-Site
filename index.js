@@ -87,24 +87,25 @@ app.use(cookieParser());
 //==========SETTING UP EXPRESSJS===========//
 
 app.get("/", (req, res) => {
-    const string1 = "example string";
-console.log(generateUUID(string1));
-console.log(generateUUID(string1)); // This will produce the same UUID
 
-const string2 = "another string";
-console.log(generateUUID(string2)); // This will produce a different UUID
-    //let ipAddress = getClientIp(req);
-    //console.log(req.sessionID)
-    //let user = users.find(u => u.session == req.sessionID && u.lastLoginIp == ipAddress);
-    let headers = req.headers;
-    let socket = req.socket;
+    const headers = req.headers;
+    const socket = req.socket;
     let user = findUser(users, { headers, socket }, req.sessionID)
     if (user) {
         //res.send('Login successful!');
+        const postsWithoutContent = user.posts.map(post => ({
+            id: post.id,
+            title: post.title,
+            createdAt: post.createdAt,
+            modifiedAt:post.modifiedAt
+
+        }));
         res.render("posts.ejs", {
-            posts: user.posts,
-            logged: true
+            posts: postsWithoutContent,
+            logged: true,
+            formatDate: formatDate
         });
+   
     } else {
         res.render("index.ejs");
     }
@@ -136,7 +137,8 @@ app.post('/login', (req, res) => {
         const postsWithoutContent = user.posts.map(post => ({
             id: post.id,
             title: post.title,
-            createdAt: post.createdAt
+            createdAt: post.createdAt,
+            modifiedAt:post.modifiedAt
 
         }));
         res.render("posts.ejs", {
@@ -189,7 +191,7 @@ app.post("/publish", (req, res) => {
                 title: req.body.Title,
                 content: req.body.Body,
                 createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
+                modifiedAt: new Date().toISOString()
             };
             user.posts.push(newPost);
             user.updatedAt = new Date().toISOString();
@@ -417,8 +419,8 @@ app.get("/published", (req, res) => {
     let user = findUser(users, { headers, socket }, req.sessionID)
       const postsWithoutContent = user.posts.map(post => ({
             id: post.id,
-          title: post.title,
-          createdAt: post.createdAt,
+            title: post.title,
+            createdAt: post.createdAt,
             modifiedAt:post.modifiedAt
 
         }));
@@ -440,7 +442,9 @@ app.get("/deleted", (req, res) => {
     let user = findUser(users, { headers, socket }, req.sessionID)
       const postsWithoutContent = user.posts.map(post => ({
             id: post.id,
-            title: post.title
+            title: post.title,
+            createdAt: post.createdAt,
+            modifiedAt:post.modifiedAt
 
         }));
     if (req.query.success == 'true')
@@ -461,12 +465,14 @@ app.get("/updated", (req, res) => {
     let user = findUser(users, { headers, socket }, req.sessionID)
       const postsWithoutContent = user.posts.map(post => ({
             id: post.id,
-            title: post.title
+            title: post.title,
+            createdAt: post.createdAt,
+            modifiedAt:post.modifiedAt
 
         }));
     if (req.query.success == 'true')
     {
-        res.render("posts.ejs", { posts: postsWithoutContent,logged: true, message: "Post has been updated.",formatDate: formatDate }); 
+        res.render("posts.ejs", { posts: postsWithoutContent,logged: true, message: "Post has been updated.", formatDate: formatDate }); 
     }
     else
     {
