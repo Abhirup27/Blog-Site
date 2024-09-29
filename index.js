@@ -1,7 +1,7 @@
 import express from "express";
 import bodyparser from "body-parser";
 import { formatDate } from "utils/dateUtils";
-import { findUser } from "utils/userIdentification";
+import { findUser, findPost } from "utils/userIdentification";
 import json from "json";
 import {
     v4 as uuid
@@ -214,26 +214,33 @@ app.post("/publish", (req, res) => {
 
 app.get("/posts/:id", (req, res) => {
 
-    let headers = req.headers;
-    let socket = req.socket;
-    const userReq = findUser(users, { headers, socket }, req.sessionID)
- 
     const postId = req.params.id;
-    let foundPost = null;
-    let isEditable = false;
+     let headers = req.headers;
+    let socket = req.socket;
+    const sessionid = req.sessionID
+    const id = req.params.id; // id of the post
+    const { foundPost, isEditable, userReq } = findPost({ id, users, headers, socket, sessionid }, false);
+    // let headers = req.headers;
+    // let socket = req.socket;
+    
+    // const userReq = findUser(users, { headers, socket }, req.sessionID)
+ 
+    // const postId = req.params.id;
+    // let foundPost = null;
+    // let isEditable = false;
 
-    for (const user of users) {
-        const post = user.posts.find(p => p.id === postId);
-        if (post) {
-            foundPost = post;
-            isEditable = userReq && user.id === userReq.id;
-            break;
-        }
-    }
+    // for (const user of users) {
+    //     const post = user.posts.find(p => p.id === postId);
+    //     if (post) {
+    //         foundPost = post;
+    //         isEditable = userReq && user.id === userReq.id;
+    //         break;
+    //     }
+    // }
 
-    if (!foundPost) {
-        return res.status(404).send("Post not found");
-    }
+    // if (!foundPost) {
+    //     return res.status(404).send("Post not found");
+    // }
 
     res.render("post.ejs", {
         post: foundPost,
@@ -247,34 +254,39 @@ app.get("/posts/:id", (req, res) => {
 app.get("/posts/:id/edit", (req, res) => {
     let headers = req.headers;
     let socket = req.socket;
-    const userReq = findUser(users, { headers, socket }, req.sessionID)
+    const sessionid = req.sessionID
+    const id = req.params.id; // id of the post
+    findPost({id, users,headers, socket, sessionid, res}, true)
+    // let headers = req.headers;
+    // let socket = req.socket;
+    // const userReq = findUser(users, { headers, socket }, req.sessionID)
 
-    const postId = req.params.id;
-    let foundPost = null;
-    let isEditable = false;
+    // const postId = req.params.id;
+    // let foundPost = null;
+    // let isEditable = false;
 
-    for (const user of users) {
-        const post = user.posts.find(p => p.id === postId);
-        if (post) {
-            foundPost = post;
-            isEditable = userReq && user.id === userReq.id;
-            break;
-        }
-    }
+    // for (const user of users) {
+    //     const post = user.posts.find(p => p.id === postId);
+    //     if (post) {
+    //         foundPost = post;
+    //         isEditable = userReq && user.id === userReq.id;
+    //         break;
+    //     }
+    // }
 
-    if (!foundPost || !isEditable) {
-        return res.status(404).send("Post not found or you don't have the priviledges to edit it.");
-    }
+    // if (!foundPost || !isEditable) {
+    //     return res.status(404).send("Post not found or you don't have the priviledges to edit it.");
+    // }
 
-    //I am sending the post ID to the client as a cookie here
-    // the other way to do this is maybe by generating persistent/ consistent UUIDs by combining the userid and the postid(random numbers and strings), then when the user submits,...
-    res.cookie('editingPostId', postId, {
-        maxAge: 3600000, //~ 1 hour
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict'
-    });
-    res.render("publish.ejs",{logged:true, editable:isEditable, post:foundPost})
+    // //I am sending the post ID to the client as a cookie here
+    // // the other way to do this is maybe by generating persistent/ consistent UUIDs by combining the userid and the postid(random numbers and strings), then when the user submits,...
+    // res.cookie('editingPostId', postId, {
+    //     maxAge: 3600000, //~ 1 hour
+    //     httpOnly: true,
+    //     secure: process.env.NODE_ENV === 'production',
+    //     sameSite: 'strict'
+    // });
+    // res.render("publish.ejs",{logged:true, editable:isEditable, post:foundPost})
 
 });
 
