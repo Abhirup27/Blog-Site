@@ -1,7 +1,7 @@
 import express from "express";
 import bodyparser from "body-parser";
 import { formatDate } from "utils/dateUtils";
-import { findUser, findPost } from "utils/userIdentification";
+import { findUser, findPost, getPostsList, getClientIp } from "utils/userIdentification";
 import json from "json";
 import {
     v4 as uuid
@@ -29,8 +29,6 @@ function generateUUID(username, id, postTitle)
     return `${uuid.substr(0,8)}-${uuid.substr(8,4)}-${uuid.substr(12,4)}-${uuid.substr(16,4)}-${uuid.substr(20,12)}`;
 }
 
-//TODO: make a sidebar which shows recent published posts. It can use socket io to communicate in different protocol and PORT, to update in realtime(not by page refresh)
-// Make the posts privatable 
      
 let users = [{
     id: "1",
@@ -43,6 +41,23 @@ let users = [{
         title: "TEST",
         id: uuid(),
         content: "This is a sample text.",
+        createdAt: "2024-09-14T12:00:00Z",
+        updatedAt: "2024-09-14T12:00:00Z"
+    }],
+    createdAt: "2024-09-14T12:00:00Z",
+    updatedAt: "2024-09-14T12:00:00Z"
+},
+{
+    id: "2",
+    username: "admin2",
+    password: "12345",
+    email: "admin2@example.com",
+    lastLoginIp: "",
+    session: "",
+    posts: [{
+        title: "TEST2",
+        id: uuid(),
+        content: "This is a sample text.2",
         createdAt: "2024-09-14T12:00:00Z",
         updatedAt: "2024-09-14T12:00:00Z"
     }],
@@ -93,13 +108,7 @@ app.get("/", (req, res) => {
     let user = findUser(users, { headers, socket }, req.sessionID)
     if (user) {
         //res.send('Login successful!');
-        const postsWithoutContent = user.posts.map(post => ({
-            id: post.id,
-            title: post.title,
-            createdAt: post.createdAt,
-            modifiedAt:post.modifiedAt
-
-        }));
+        const postsWithoutContent = getPostsList(undefined,user);
         res.render("posts.ejs", {
             posts: postsWithoutContent,
             logged: true,
@@ -111,36 +120,23 @@ app.get("/", (req, res) => {
     }
 });
 
-
-function getClientIp(req) {
-    return req.headers['x-forwarded-for'] ?.split(',').shift() ||
-        req.socket ?.remoteAddress;
-}
-
 app.post('/login', (req, res) => {
     const {
         username,
         password
     } = req.body;
 
-    // Find the user
-    //let user = users.find(u => u.username === username && u.password === password); // 
+    
     let user = findUser(users, undefined, undefined, { username, password });
     req.session.username = req.sessionID;
-    console.log(req.sessionID)
+    console.log(req.sessionID);
     const ipAddress = getClientIp(req);
 
     if (user) {
         user.lastLoginIp = ipAddress;
         user.session = req.sessionID;
 
-        const postsWithoutContent = user.posts.map(post => ({
-            id: post.id,
-            title: post.title,
-            createdAt: post.createdAt,
-            modifiedAt:post.modifiedAt
-
-        }));
+        const postsWithoutContent = getPostsList(undefined,user);
         res.render("posts.ejs", {
             posts: postsWithoutContent,
             logged: true,
@@ -162,7 +158,7 @@ app.get("/logout", (req, res) => {
     console.log(req.sessionID)
     let user = users.find(u => u.session == req.sessionID && u.lastLoginIp == ipAddress);
     if (user) {
-        //res.send('Login successful!');
+      
         user.session = ""
         user.lastLoginIp = ""
         res.render("index.ejs", {
@@ -195,11 +191,7 @@ app.post("/publish", (req, res) => {
             };
             user.posts.push(newPost);
             user.updatedAt = new Date().toISOString();
-            // res.render("posts.ejs", {
-            //     posts: user.posts,
-            //     logged: true,
-            //     message: "Post published successfully!"
-            // });
+        
             res.redirect(303, '/published?success=true');
         } else {
             res.render("publish.ejs", {
@@ -220,27 +212,6 @@ app.get("/posts/:id", (req, res) => {
     const sessionid = req.sessionID
     const id = req.params.id; // id of the post
     const { foundPost, isEditable, userReq } = findPost({ id, users, headers, socket, sessionid }, false);
-    // let headers = req.headers;
-    // let socket = req.socket;
-    
-    // const userReq = findUser(users, { headers, socket }, req.sessionID)
- 
-    // const postId = req.params.id;
-    // let foundPost = null;
-    // let isEditable = false;
-
-    // for (const user of users) {
-    //     const post = user.posts.find(p => p.id === postId);
-    //     if (post) {
-    //         foundPost = post;
-    //         isEditable = userReq && user.id === userReq.id;
-    //         break;
-    //     }
-    // }
-
-    // if (!foundPost) {
-    //     return res.status(404).send("Post not found");
-    // }
 
     res.render("post.ejs", {
         post: foundPost,
@@ -257,36 +228,6 @@ app.get("/posts/:id/edit", (req, res) => {
     const sessionid = req.sessionID
     const id = req.params.id; // id of the post
     findPost({id, users,headers, socket, sessionid, res}, true)
-    // let headers = req.headers;
-    // let socket = req.socket;
-    // const userReq = findUser(users, { headers, socket }, req.sessionID)
-
-    // const postId = req.params.id;
-    // let foundPost = null;
-    // let isEditable = false;
-
-    // for (const user of users) {
-    //     const post = user.posts.find(p => p.id === postId);
-    //     if (post) {
-    //         foundPost = post;
-    //         isEditable = userReq && user.id === userReq.id;
-    //         break;
-    //     }
-    // }
-
-    // if (!foundPost || !isEditable) {
-    //     return res.status(404).send("Post not found or you don't have the priviledges to edit it.");
-    // }
-
-    // //I am sending the post ID to the client as a cookie here
-    // // the other way to do this is maybe by generating persistent/ consistent UUIDs by combining the userid and the postid(random numbers and strings), then when the user submits,...
-    // res.cookie('editingPostId', postId, {
-    //     maxAge: 3600000, //~ 1 hour
-    //     httpOnly: true,
-    //     secure: process.env.NODE_ENV === 'production',
-    //     sameSite: 'strict'
-    // });
-    // res.render("publish.ejs",{logged:true, editable:isEditable, post:foundPost})
 
 });
 
@@ -365,25 +306,6 @@ app.post("/delete-post", (req, res) => {
 
     if (user)
     {
-        // const postId = req.body.postId;
-        // if (postId)
-        // {
-        //     if (deletePost(user, postId))
-        //     {
-        //         res.render("posts.ejs", {
-        //             posts: user.posts,
-        //             logged: true,
-        //             message: "Post deleted successfully!"
-        //         });
-        //     }
-        //     else {
-        //         res.status(404).send("Post not found!");
-        //     }
-        // }
-        // else
-        // {
-        //     res.status(400).send("Missing post ID!");
-        // }
 
           const postId = req.body.postId;
         console.log('Received postId:', postId);
@@ -393,21 +315,11 @@ app.post("/delete-post", (req, res) => {
             const postExists = user.posts.some(post => post.id === postId);
             if (postExists) {
                 if (deletePost(user, postId)) {
-                    // Render the posts page with a success message
-                    // res.render("posts.ejs", {
-                    //     posts: user.posts,
-                    //     logged: true,
-                    //     message: "Post deleted successfully!"
-                    // });
+
 
                     res.redirect(303, "/deleted?success=true"); 
                 } else {
-                    // Render the posts page with an error message
-                    // res.render("posts.ejs", {
-                    //     posts: user.posts,
-                    //     logged: true,
-                    //     message: "Failed to delete post"
-                    // });
+                  
 
                     res.redirect(303, "/deleted?success=false"); //change this such that the page stays on the current one but displays the message.
                 }
@@ -428,14 +340,8 @@ app.get("/published", (req, res) => {
 
     const headers = req.headers;
     const socket = req.socket;
-    let user = findUser(users, { headers, socket }, req.sessionID)
-      const postsWithoutContent = user.posts.map(post => ({
-            id: post.id,
-            title: post.title,
-            createdAt: post.createdAt,
-            modifiedAt:post.modifiedAt
-
-        }));
+    const sessionID = req.sessionID;
+    const postsWithoutContent = getPostsList({headers,socket,sessionID,users}, undefined)
     if (req.query.success == 'true')
     {
         res.render("posts.ejs", { posts: postsWithoutContent,logged: true, message: "Post has been published successfully!", formatDate: formatDate }); 
@@ -451,14 +357,8 @@ app.get("/published", (req, res) => {
 app.get("/deleted", (req, res) => {
     const headers = req.headers;
     const socket = req.socket;
-    let user = findUser(users, { headers, socket }, req.sessionID)
-      const postsWithoutContent = user.posts.map(post => ({
-            id: post.id,
-            title: post.title,
-            createdAt: post.createdAt,
-            modifiedAt:post.modifiedAt
-
-        }));
+    const sessionID = req.sessionID;
+    const postsWithoutContent = getPostsList({headers,socket,sessionID,users}, undefined)
     if (req.query.success == 'true')
     {
         console.log(postsWithoutContent.length)
@@ -474,14 +374,8 @@ app.get("/deleted", (req, res) => {
 app.get("/updated", (req, res) => {
     const headers = req.headers;
     const socket = req.socket;
-    let user = findUser(users, { headers, socket }, req.sessionID)
-      const postsWithoutContent = user.posts.map(post => ({
-            id: post.id,
-            title: post.title,
-            createdAt: post.createdAt,
-            modifiedAt:post.modifiedAt
-
-        }));
+    const sessionID = req.sessionID;
+    const postsWithoutContent = getPostsList({headers,socket,sessionID,users}, undefined)
     if (req.query.success == 'true')
     {
         res.render("posts.ejs", { posts: postsWithoutContent,logged: true, message: "Post has been updated.", formatDate: formatDate }); 

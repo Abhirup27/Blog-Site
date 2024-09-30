@@ -63,3 +63,20 @@ export function findPost(data, toEdit)
         //just send the data foundPost and isEditable, user to index js    
     }
 }
+
+export function getPostsList(data, user) {
+    const { headers = undefined, socket = undefined } = data || {};
+    if (user == undefined)
+    {
+        user = findUser(data.users, { headers, socket }, data.sessionID);
+
+    }
+    const postsWithoutContent = user.posts.map(post => ({
+        id: post.id,
+        title: post.title,
+        createdAt: post.createdAt,
+        modifiedAt: post.modifiedAt
+    }));
+
+    return postsWithoutContent;
+}
