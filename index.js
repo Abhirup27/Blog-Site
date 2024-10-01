@@ -1,7 +1,10 @@
+import dotenv from "dotenv"
+dotenv.config();
 import express from "express";
 import bodyparser from "body-parser";
 import { formatDate } from "utils/dateUtils";
 import { findUser, findPost, getPostsList, getClientIp } from "utils/userIdentification";
+import { getConnection } from "db-handler/connection-handler";
 import json from "json";
 import {
     v4 as uuid
@@ -11,6 +14,8 @@ import crypto from "crypto";
 import cookieParser from "cookie-parser";
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 

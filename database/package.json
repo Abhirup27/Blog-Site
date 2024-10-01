@@ -1,0 +1,17 @@
+{
+    "name":"db-handler",
+    "description": "To handle mariadb connections, queries.",
+    "version": "1.0",
+    "license": "MIT",
+    "repository": "DBHandler",
+    "type": "module",
+    "files":[
+        "connectionHandler.js",
+        "userQueries.js"
+    ],
+    "exports":{
+        "./connection-handler": "./connectionHandler.js",
+        "./user-queries": "./userQueries.js"
+    }
+
+}
