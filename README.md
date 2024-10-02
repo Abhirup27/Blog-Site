@@ -4,6 +4,8 @@ This is a simple blog website built using Node.js, Express.js, and EJS templatin
 
 ## Getting Started
 
+- First you need to create the .env file in project's root folder. I have included .env-template which you can configure and rename to .env .
+
 I have also included a dockerfile which you can use to create an image and run a container.
 
 ### Installation and Running with npm

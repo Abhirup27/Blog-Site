@@ -8,6 +8,7 @@ export function findUser(users, header, sessionid, data)
     let user;
     if (sessionid != undefined) {
         const ipAddress = getClientIp(header);
+        console.log(ipAddress)
          user = users.find(u => u.session == sessionid && u.lastLoginIp == ipAddress);
     }
     else if (sessionid == undefined && header == undefined)

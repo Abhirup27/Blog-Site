@@ -79,7 +79,7 @@ app.use(session({
         //console.log('session id created');
         return uuid();
     },
-    secret: 'Shsh!Secret!',
+    secret: process.env.SESSION_SECRET || 'default',
     resave: false,
     saveUninitialized: false,
     cookie: {
