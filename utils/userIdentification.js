@@ -1,9 +1,9 @@
-export function getClientIp(req) {
+ function getClientIp(req) {
     return req.headers['x-forwarded-for'] ?.split(',').shift() ||
         req.socket ?.remoteAddress;
 }
 
-export function findUser(users, header, sessionid, data)
+ function findUser(users, header, sessionid, data)
 {
     let user;
     if (sessionid != undefined) {
@@ -18,7 +18,7 @@ export function findUser(users, header, sessionid, data)
     return user;
 }
 
-export function findPost(data, toEdit)
+ function findPost(data, toEdit)
 {
     const postId = data.id;
     let foundPost = null;
@@ -65,7 +65,7 @@ export function findPost(data, toEdit)
     }
 }
 
-export function getPostsList(data, user) {
+ function getPostsList(data, user) {
     const { headers = undefined, socket = undefined } = data || {};
     if (user == undefined)
     {
@@ -81,3 +81,10 @@ export function getPostsList(data, user) {
 
     return postsWithoutContent;
 }
+
+module.exports = {
+    findUser,
+    findPost,
+    getPostsList,
+    getClientIp
+};

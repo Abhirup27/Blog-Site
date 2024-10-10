@@ -1,4 +1,4 @@
-  export function formatDate(dateString) {
+ function formatDate(dateString) {
     const datePart = dateString.split('T')[0];
     
     // Parse the date
@@ -29,4 +29,4 @@
     return formattedDate;
   }
   
-//module.exports = { formatDate };
+module.exports = { formatDate };
