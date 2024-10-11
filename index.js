@@ -15,7 +15,7 @@ const { dirname, join } = require('path');
 
 //const { User, Post} = require('./database/models');
 const { Sequelize } = require('sequelize');
-const { createDatabase } = require('db-handler/createDB');
+const {createDatabase}  = require('db-handler');
 
 
 function generateUUID(username, id, postTitle)
@@ -69,34 +69,6 @@ let users = [{
     updatedAt: "2024-09-14T12:00:00Z"
 }];
 
-async function createDatabaseIfNotExists(dbName, dbUser, dbPassword, dbHost) {
-  // Create a temporary Sequelize instance without specifying a database
-  const tempSequelize = new Sequelize('', dbUser, dbPassword, {
-    host: dbHost,
-    dialect: 'mariadb'
-  });
-
-  try {
-    // Try to create the database
-    await tempSequelize.query(`CREATE DATABASE IF NOT EXISTS ${dbName};`);
-    console.log(`Database ${dbName} created or already exists.`);
-  } catch (error) {
-    console.error('Error creating database:', error);
-     await tempSequelize.query(`CREATE DATABASE ${dbName};`);
-  } finally {
-    // Close the temporary connection
-    await tempSequelize.close();
-  }
-
-  // Now create a Sequelize instance with the database specified
-  const sequelize = new Sequelize(dbName, dbUser, dbPassword, {
-    host: dbHost,
-    dialect: 'mariadb'
-  });
-
-  return sequelize;
-}
-
 const app = express();
 const port = process.env.PORT || 8080;
 
@@ -137,7 +109,7 @@ app.use(cookieParser());
 
 createDatabase(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASSWORD, process.env.DB_HOST)
     .then(() => {
-         const db = require('./database');
+         const {db} = require('./database');
         const { User } = db;
         db.sequelize.sync({ force: true }).then((req) => {
 
@@ -199,13 +171,13 @@ createDatabase(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASSWORD
     });
 
         app.get("/logout", (req, res) => {
-            const ipAddress = getClientIp(req);
-            console.log(req.sessionID)
-            let user = users.find(u => u.session == req.sessionID && u.lastLoginIp == ipAddress);
+            const headers = req.headers;
+            const socket = req.socket;
+            let user = findUser(users, { headers, socket }, req.sessionID)
             if (user) {
       
                 user.session = ""
-                user.lastLoginIp = ""
+                res.clearCookie('SessionCookie');
                 res.render("index.ejs", {
                     logged: false,
                     message: "Logged out successfully!"

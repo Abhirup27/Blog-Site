@@ -4,14 +4,16 @@
     "version": "1.0",
     "main": "index.js",
     "license": "MIT",
-    "repository": "DBHandler",
+    "repository": "db-handler",
     "type": "commonjs",
     "files":[
         "connectionHandler.js",
         "userQueries.js",
         "./models/User.js",
-        "createDB.js",
-        "index.js"
-    ]
-
+        "./createDB.js",
+        "./index.js"
+    ],
+    "exports":{
+        "." : "./index.js"
+    }
 }
