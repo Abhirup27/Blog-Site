@@ -1,9 +1,24 @@
 <%- include("partials/header.ejs") %>
-<form action="<% if (locals.post) { %>/update<% } else {%>/publish<%}%>" method="post">
-    <input type="text" class="form-control" name="Title" placeholder="Title heading" required autofocus
-        value="<%= (locals.post && locals.logged && locals.editable) ? post.title : '' %>">
-    <input type="text" class="form-control" name="Body" placeholder="Body" required autofocus
-        value="<%= (locals.post && locals.logged && locals.editable) ? post.content : '' %>">
-    <button class="btn btn-lg btn-primary btn-block" type="submit"><% if (locals.post) { %>Update<% } else {%>Publish<%}%></button>
-</form>
+<div class="max-w-2xl mx-auto mt-8 px-4">
+  <form action="<% if (locals.post) { %>/update<% } else {%>/publish<%}%>" method="post" class="space-y-4">
+    <input 
+      type="text" 
+      class="input w-full" 
+      name="Title" 
+      placeholder="Title heading" 
+      required 
+      autofocus
+      value="<%= (locals.post && locals.logged && locals.editable) ? post.title : '' %>"
+    >
+    <textarea 
+      class="input w-full h-40" 
+      name="Body" 
+      placeholder="Body" 
+      required
+    ><%= (locals.post && locals.logged && locals.editable) ? post.content : '' %></textarea>
+    <button class="btn w-full" type="submit">
+      <% if (locals.post) { %>Update<% } else {%>Publish<%}%>
+    </button>
+  </form>
+</div>
 <%- include("partials/footer.ejs") %>

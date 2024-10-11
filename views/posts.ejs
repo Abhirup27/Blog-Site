@@ -1,28 +1,32 @@
 <%- include("partials/header.ejs") %>
-<form action="/publish" method="post">
-    <button class="btn btn-lg btn-primary btn-block" type="submit">New Post</button>
-</form>
-<% if (locals.posts) { posts1= posts %>
-    
-    <% for( let index = 0; index < posts1.length; index++ ) { %>
-        <div class="d-flex justify-content-between align-items-center mt-3">
-            <h3><a href="/posts/<%= posts1[index].id %>"><%= posts1[index].title %></a></h3>
-            <p><%= formatDate(posts1[index].createdAt) %> </p>
-            <div class="dropdown">
-                <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton<%= index %>" data-bs-toggle="dropdown" aria-expanded="false">
-                    Options
-                </button>
-                <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton<%= index %>">
-                    <li><a class="dropdown-item" href="/posts/<%= posts[index].id %>">View</a></li>
-                    <li><a class="dropdown-item" href="/posts/<%= posts[index].id %>/edit">Edit</a></li>
-                    <li><a class="dropdown-item" href="#" onclick="deletePost('<%= posts[index].id %>')">Delete</a></li>
-                </ul>
-            </div>
+<div class="max-w-4xl mx-auto mt-8 px-4">
+  <form action="/publish" method="post" class="mb-8">
+    <button class="btn w-full" type="submit">New Post</button>
+  </form>
+  <% if (locals.posts) { posts1 = posts %>
+    <div class="space-y-6">
+      <% for( let index = 0; index < posts1.length; index++ ) { %>
+        <div class="flex justify-between items-center border-b border-gray-200 pb-4">
+          <div>
+            <h3 class="text-xl font-semibold">
+              <a href="/posts/<%= posts1[index].id %>" class="hover:text-primary"><%= posts1[index].title %></a>
+            </h3>
+            <p class="text-sm text-gray-500"><%= formatDate(posts1[index].createdAt) %></p>
+          </div>
+          <div class="relative" x-data="{ open: false }">
+            <button @click="open = !open" class="btn">
+              Options
+            </button>
+            <ul x-show="open" @click.away="open = false" class="absolute right-0 mt-2 w-48 bg-background border border-primary rounded-md shadow-lg z-10">
+              <li><a class="block px-4 py-2 hover:bg-primary hover:text-background" href="/posts/<%= posts[index].id %>">View</a></li>
+              <li><a class="block px-4 py-2 hover:bg-primary hover:text-background" href="/posts/<%= posts[index].id %>/edit">Edit</a></li>
+              <li><a class="block px-4 py-2 hover:bg-primary hover:text-background" href="#" onclick="deletePost('<%= posts[index].id %>')">Delete</a></li>
+            </ul>
+          </div>
         </div>
-    <% } %>
-<% } %>
-
-
-<%- include ("partials/deletePost.ejs") %> 
-
+      <% } %>
+    </div>
+  <% } %>
+</div>
+<%- include ("partials/deletePost.ejs") %>
 <%- include("partials/footer.ejs") %>

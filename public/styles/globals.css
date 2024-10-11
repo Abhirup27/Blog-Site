@@ -1,0 +1,21 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-background text-text;
+  }
+  button, input {
+    @apply border border-primary outline-none focus:ring-2 focus:ring-primary;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply px-4 py-2 rounded bg-background text-text border border-primary hover:bg-primary hover:text-background transition-colors;
+  }
+  .input {
+    @apply px-3 py-2 rounded bg-background text-text border border-primary focus:ring-2 focus:ring-primary;
+  }
+}

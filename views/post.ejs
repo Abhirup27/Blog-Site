@@ -1,16 +1,15 @@
 <%- include("partials/header.ejs") %>
-
-<% if (locals.logged && locals.editable) { %>
-<% if (logged && editable) { %>
-    <a href="/posts/<%= post.id %>/edit">Edit Post</a>
-    <button onclick="deletePost('<%= post.id%>')">Delete Post</button>
-<% } %>
-<% } %>
-<% if (locals.post) { %>
- <h2><%= post.title %> </h2>
- <p id="content" align="justify"><%= post.content %> </p>
-<% } %>
-
-<%- include ("partials/deletePost.ejs") %> 
-
+<div class="max-w-4xl mx-auto mt-8 px-4">
+  <% if (locals.logged && locals.editable) { %>
+  <div class="flex space-x-4 mb-4">
+    <a href="/posts/<%= post.id %>/edit" class="btn">Edit Post</a>
+    <button onclick="deletePost('<%= post.id%>')" class="btn bg-red-600 hover:bg-red-700">Delete Post</button>
+  </div>
+  <% } %>
+  <% if (locals.post) { %>
+    <h2 class="text-3xl font-bold mb-4"><%= post.title %></h2>
+    <p id="content" class="text-lg leading-relaxed"><%= post.content %></p>
+  <% } %>
+</div>
+<%- include ("partials/deletePost.ejs") %>
 <%- include("partials/footer.ejs") %>
