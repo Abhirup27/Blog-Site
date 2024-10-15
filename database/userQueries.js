@@ -1,101 +1,82 @@
 const { Sequelize } = require('sequelize');
 
-
-
 async function getUserLogin(userid, passwd, ipaddr, sessionid, User) {
-    let data;
-    User.findAll({
-        where: {
-            username: userid,
-            password: passwd
-        }
-    }).then( async (user) => {
-        await setUserInfo(userid, passwd, ipaddr, sessionid, User).then(async (result) => {
-            console.log(result)
-            if (result) {
-                console.log("This is the data " + user);
-                data = user;
-                return user;
-           } else {
-            console.log("failed to update user info in DB");
-        }
+    try {
+        const user = await User.findOne({
+            where: {
+                username: userid,
+                password: passwd
+            }
+        });
 
-        })
-            
-        
-    }).catch((err) => {
+        if (user) {
+            await setUserInfo(userid, passwd, ipaddr, sessionid, User);
+            console.log("This is the data ", user);
+            return user;
+        }
+        return null;
+    } catch (err) {
         console.log(err);
-    });
-    return data;
+        return null;
+    }
 }
 
 async function verifyUser(sessionid, ipaddr, db) {
     const { User } = db;
-    User.findAll({
-        where: {
-            session_id: sessionid,
-            ip_addr: ipaddr
-        }
-    }).then((user) => {
-        return user;
-    }).catch((err) => {
+    try {
+        return await User.findOne({
+            where: {
+                session_id: sessionid,
+                ip_addr: ipaddr
+            }
+        });
+    } catch (err) {
         console.log(err);
-    });
-    return undefined;
-
+        return null;
+    }
 }
 
 async function setUserInfo(userid, passwd, ipaddr, sessionid, User) {
-    console.log("THIS IS THE DATA " + userid)
-    
-    await User.update({
+    try {
+        const result = await User.update({
             ip_addr: ipaddr,
             session_id: sessionid
         }, {
             where: {
                 username: userid
             }
-        })
-        .then((result) => {
-            console.log('Updated rows:', result[0]);
-            return true;
-        })
-        .catch((err) => {
-            if (err) {
-                console.log(err);
-                return false;
-            }
-        })
-    return true;
+        });
+        console.log('Updated rows:', result[0]);
+        return true;
+    } catch (err) {
+        console.log(err);
+        return false;
+    }
 }
-
 
 async function newUserRegister(userid, email, passwd, name, db) {
     const { User } = db;
-    
-    User.findAll({
-        where: {
-            username: userid
-        }
-    }).then((user) => {
-        if (user == undefined) {
-            User.create({
+    try {
+        const existingUser = await User.findOne({
+            where: {
+                username: userid
+            }
+        });
+        
+        if (!existingUser) {
+            await User.create({
                 username: userid,
                 email: email,
                 password: passwd,
-                name : name
-            }).catch((err) => {
-                if (err) {
-                    console.log(err);
-                }
-            })
+                name: name
+            });
+            return true;
         }
-
-    }).catch((err) => {
+        return false;
+    } catch (err) {
         console.log(err);
-    });
-
-
+        return false;
+    }
 }
 
 module.exports = { getUserLogin, verifyUser, setUserInfo, newUserRegister };

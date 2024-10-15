@@ -11,7 +11,7 @@
             <h3 class="text-xl font-semibold">
               <a href="/posts/<%= posts1[index].id %>" class="hover:text-primary"><%= posts1[index].title %></a>
             </h3>
-            <p class="text-sm text-gray-500"><%= formatDate(posts1[index].createdAt) %></p>
+            <p class="text-sm text-gray-500"><%= formatDate(posts1[index].created_at) %></p>
           </div>
           <div class="relative" x-data="{ open: false }">
             <button @click="open = !open" class="btn">

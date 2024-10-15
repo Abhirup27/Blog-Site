@@ -111,7 +111,7 @@ app.use(cookieParser());
 createDatabase(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASSWORD, process.env.DB_HOST)
     .then(() => {
          const {db} = require('./database');
-        const { User } = db;
+        const { User, Post } = db;
         db.sequelize.sync().then((req) => {
 
             app.listen(3000, () => {
@@ -141,52 +141,33 @@ createDatabase(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASSWORD
         }
     });
 
-    app.post('/login', async(req, res) => {
-        const {
-            username,
-            password
-        } = req.body;
-
+app.post('/login', async (req, res) => {
+    const { username, password } = req.body;
+    
+    req.session.username = req.sessionID;
+    console.log(req.sessionID);
+    const ipAddress = getClientIp(req);
+    
+    try {
+        const user = await getUserLogin(username, password, ipAddress, req.sessionID, User);
+        console.log("This is after getUserLogin", user);
         
-        // let user = findUser(users, undefined, undefined, { username, password });
-        req.session.username = req.sessionID;
-        console.log(req.sessionID);
-        const ipAddress = getClientIp(req);
-
-        // if (user) {
-        //     user.lastLoginIp = ipAddress;
-        //     user.session = req.sessionID;
-
-        //     const postsWithoutContent = getPostsList(undefined,user);
-        //     res.render("posts.ejs", {
-        //         posts: postsWithoutContent,
-        //         logged: true,
-        //         formatDate: formatDate
-        //     });
-        //     //res.send('Login successful!');
-
-        // } else {
-        //     //res.status(401).send('Invalid username or password');
-        //     res.render("index.ejs",{logged:false, message:"invalid username or password."})
-        // }
-      var user=  await getUserLogin(username, password, ipAddress, req.sessionID, User).then( (user) => {
-             console.log(user);
-         });
-        console.log("This is after getUserLogin" + user)
-        if (user)
-        {
-            const postsWithoutContent = getPostsList(undefined, user);
+        if (user) {
+            const postsWithoutContent = await getPostsLists({username: user.dataValues.username}, Post);
             
             res.render("posts.ejs", {
-                 posts: postsWithoutContent,
+                posts: postsWithoutContent,
                 logged: true,
                 formatDate: formatDate
             });
+        } else {
+            res.render("index.ejs", {logged: false, message: "Invalid username or password."});
         }
-        else {
-             res.render("index.ejs",{logged:false, message:"invalid username or password."})
-        }
-    });
+    } catch (error) {
+        console.error("Error during login:", error);
+        res.status(500).render("index.ejs", {message: "An error occurred during login."});
+    }
+});
         
         app.post('/register',(req, res) => {
             const { username, password,email } = req.body;

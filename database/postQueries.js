@@ -1,26 +1,20 @@
 const { Sequelize } = require('sequelize');
 
-async function getPostsLists( filters,db)
-{
-    const { User, Post } = db;
-      try {
+async function getPostsLists(filters, Post) {
+  try {
     const results = await Post.findAll({
       where: {
-            //usernname: _user_,
-            ...filters
+        ...filters
       },
-
-      attributes: ['p_id', 'title', 'createdAt']
+      attributes: ['p_id', 'title', 'created_at']
     });
-
     console.log(results);
     return results;
   } catch (error) {
     console.error('Error selecting rows:', error);
+    return null; 
   }
-
 }
-
 
 async function getPost(filters, db)
 {

@@ -1,8 +1,9 @@
- function formatDate(dateString) {
-    const datePart = dateString.split('T')[0];
+function formatDate(dateString) {
+  console.log(dateString.toString());
+   // const datePart = dateString.toString().split('T')[0]; //Not needed anymore
     
     // Parse the date
-    const date = new Date(datePart);
+    const date = new Date(dateString); //const date = new Date(datePart);
     
     const months = [
       "January", "February", "March", "April", "May", "June", 
