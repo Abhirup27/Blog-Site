@@ -15,7 +15,7 @@ const { dirname, join } = require('path');
 
 //const { User, Post} = require('./database/models');
 const { Sequelize } = require('sequelize');
-const {createDatabase}  = require('db-handler');
+const {getPostsLists, getPost, createPost, updatePost, getUserLogin, setUserInfo, verifyUser, newUserRegister, createDatabase}  = require('db-handler');
 
 
 function generateUUID(username, id, postTitle)
@@ -33,7 +33,7 @@ function generateUUID(username, id, postTitle)
     return `${uuid.substr(0,8)}-${uuid.substr(8,4)}-${uuid.substr(12,4)}-${uuid.substr(16,4)}-${uuid.substr(20,12)}`;
 }
 
-     
+// stub Database need to update later     
 let users = [{
     id: "1",
     username: "admin",
@@ -68,6 +68,7 @@ let users = [{
     createdAt: "2024-09-14T12:00:00Z",
     updatedAt: "2024-09-14T12:00:00Z"
 }];
+/* ====================================*/
 
 const app = express();
 const port = process.env.PORT || 8080;
@@ -111,15 +112,13 @@ createDatabase(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASSWORD
     .then(() => {
          const {db} = require('./database');
         const { User } = db;
-        db.sequelize.sync({ force: true }).then((req) => {
+        db.sequelize.sync().then((req) => {
 
             app.listen(3000, () => {
                 console.log("server running");
             });
 
         });
-        //createDatabaseIfNotExists('database_development', 'root', 'ABHIrup_27', 'localhost')
-        //createDatabaseIfNotExists(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASSWORD, process.env.DB_HOST);
 
 
         app.get("/", (req, res) => {
@@ -127,6 +126,7 @@ createDatabase(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASSWORD
         const headers = req.headers;
         const socket = req.socket;
         let user = findUser(users, { headers, socket }, req.sessionID)
+        
         if (user) {
             //res.send('Login successful!');
             const postsWithoutContent = getPostsList(undefined,user);
@@ -141,34 +141,66 @@ createDatabase(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASSWORD
         }
     });
 
-    app.post('/login', (req, res) => {
+    app.post('/login', async(req, res) => {
         const {
             username,
             password
         } = req.body;
 
         
-        let user = findUser(users, undefined, undefined, { username, password });
+        // let user = findUser(users, undefined, undefined, { username, password });
         req.session.username = req.sessionID;
         console.log(req.sessionID);
         const ipAddress = getClientIp(req);
 
-        if (user) {
-            user.lastLoginIp = ipAddress;
-            user.session = req.sessionID;
+        // if (user) {
+        //     user.lastLoginIp = ipAddress;
+        //     user.session = req.sessionID;
 
-            const postsWithoutContent = getPostsList(undefined,user);
+        //     const postsWithoutContent = getPostsList(undefined,user);
+        //     res.render("posts.ejs", {
+        //         posts: postsWithoutContent,
+        //         logged: true,
+        //         formatDate: formatDate
+        //     });
+        //     //res.send('Login successful!');
+
+        // } else {
+        //     //res.status(401).send('Invalid username or password');
+        //     res.render("index.ejs",{logged:false, message:"invalid username or password."})
+        // }
+      var user=  await getUserLogin(username, password, ipAddress, req.sessionID, User).then( (user) => {
+             console.log(user);
+         });
+        console.log("This is after getUserLogin" + user)
+        if (user)
+        {
+            const postsWithoutContent = getPostsList(undefined, user);
+            
             res.render("posts.ejs", {
-                posts: postsWithoutContent,
+                 posts: postsWithoutContent,
                 logged: true,
                 formatDate: formatDate
             });
-            //res.send('Login successful!');
-
-        } else {
-            res.status(401).send('Invalid username or password');
+        }
+        else {
+             res.render("index.ejs",{logged:false, message:"invalid username or password."})
         }
     });
+        
+        app.post('/register',(req, res) => {
+            const { username, password,email } = req.body;
+
+            let user = findUser(users, undefined, undefined, { username, password });
+
+            if (user)
+            {
+                res.render("index.ejs", { message: "Email or username already used. Registration failed!" });
+            }
+            else {
+                // make changes to DB; Send Email verification;
+            }
+        });
 
         app.get("/logout", (req, res) => {
             const headers = req.headers;

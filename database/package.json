@@ -9,6 +9,7 @@
     "files":[
         "connectionHandler.js",
         "userQueries.js",
+        "postQueries.js",
         "./models/User.js",
         "./createDB.js",
         "./index.js"

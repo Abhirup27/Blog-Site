@@ -1,10 +1,11 @@
 'use strict';
 
-
+const { getUserLogin, setUserInfo, verifyUser, newUserRegister } = require('./userQueries');
+const { getPostsLists, getPost, createPost, updatePost } = require('./postQueries');
 const {createDatabase} = require('./createDB');
 const fs = require('fs');
 const path = require('path');
-const Sequelize = require('sequelize');
+const {Sequelize, DataTypes} = require('sequelize');
 const process = require('process');
 const basename = path.basename(__filename);
 const env = process.env.NODE_ENV || 'development';
@@ -22,7 +23,30 @@ if (config.use_env_variable) {
     {
       host: process.env.DB_HOST || config.host,
       port: process.env.DB_PORT || config.port,
-      dialect: 'mariadb'
+      dialect: 'mariadb',
+      dialectOptions: {
+       timezone: '+5:30'
+     },
+     define: {
+       timestamps: true,
+       createdAt: {
+         type: DataTypes.DATE,
+         get() {
+           return this.getDataValue('createdAt')
+             .toISOString()
+             .replace(/\.\d{3}Z$/, 'Z');
+         }
+       },
+       updatedAt: {
+         type: DataTypes.DATE,
+         get() {
+           return this.getDataValue('updatedAt')
+             .toISOString()
+             .replace(/\.\d{3}Z$/, 'Z');
+         }
+       }
+     }
+
     }
   );
 }
@@ -53,4 +77,4 @@ Object.keys(db).forEach(modelName => {
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
 
-module.exports = {createDatabase,db};
+module.exports = {getPostsLists, getPost, createPost, updatePost, getUserLogin, setUserInfo, verifyUser, newUserRegister, createDatabase,db};

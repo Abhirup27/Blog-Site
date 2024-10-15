@@ -6,12 +6,12 @@
  function findUser(users, header, sessionid, data)
 {
     let user;
-    if (sessionid != undefined) {
+    if (sessionid != undefined) { //to check if it the right user making the request
         const ipAddress = getClientIp(header);
         console.log(ipAddress)
          user = users.find(u => u.session == sessionid && u.lastLoginIp == ipAddress);
     }
-    else if (sessionid == undefined && header == undefined)
+    else if (sessionid == undefined && header == undefined)   //log in
     {
         user = users.find(u => u.username === data.username && u.password === data.password);
     }

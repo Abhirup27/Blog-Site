@@ -1,27 +1,36 @@
 <%- include("partials/header.ejs") %>
 <!-- <h1 class="text-4xl font-bold mb-6">Blog Site</h1> -->
-<h1 class="text-4xl font-bold mb-6 text-red-500">Blog Site</h1>
-<div class="max-w-md mx-auto">
-  <form action="/login" method="post" class="space-y-4">      
-    <h2 class="text-2xl font-semibold mb-4">Please login</h2>
+<!--<h1 class="text-4xl font-bold mb-6 text-red-500">Blog Site</h1>  -->
+<div class="max-w-md mx-auto" x-data="{isLogin:true}">
+   <h2 class="text-2xl font-semibold mb-4" x-text="isLogin ? 'Please Login' : 'Please Register'"></h2>
+  <form x-show="isLogin" action="/login" method="post" class="space-y-4">      
     <div class="space-y-2">
       <div class="flex items-center">
         <i class="ri-user-line mr-2"></i>
-        <input type="text" class="input w-full" name="username" placeholder="Email Address" required autofocus />
+
+        <input type="text" class="input w-full border-white-500 focus:outline-none focus:border-red-500" name="username" placeholder="Email Address" required autofocus />
       </div>
       <div class="flex items-center">
+        
         <i class="ri-lock-line mr-2"></i>
-        <input type="password" class="input w-full" name="password" placeholder="Password" required />
+        <input type="password" class="input w-full hover:border-red-500" name="password" placeholder="Password" required />
       </div>
     </div>
     <div class="flex items-center">
-      <input type="checkbox" id="rememberMe" name="rememberMe" class="mr-2" />
+      <input type="checkbox" id="rememberMe" name="rememberMe" class="mr-2 hover:border-red-500" />
       <label for="rememberMe">Remember me</label>
     </div>
     <button class="btn w-full flex items-center justify-center" type="submit">
       <i class="ri-login-box-line mr-2"></i>
       Login
     </button>
+  </form>
+
+  <form x-show="!isLogin" action="/register" method="post">
+    <div>
+      
+    </div>
+
   </form>
 </div>
 <%- include("partials/footer.ejs") %>

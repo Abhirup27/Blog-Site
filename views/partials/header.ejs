@@ -14,7 +14,7 @@
 <header>
   <nav class="container mx-auto px-4 py-6">
     <div class="flex justify-between items-center">
-      <a href="/" class="text-2xl font-bold">My Blog</a>
+      <a href="/" class="text-2xl font-bold text-red-500">My Blog</a>
       <ul class="flex space-x-4">
         <li><a href="/" class="hover:text-primary">Home</a></li>
         <li><a href="/about" class="hover:text-primary">About</a></li>
@@ -25,7 +25,7 @@
     </div>
   </nav>
   <% if (locals.message) { %>
-  <div id="messageBar" class="bg-red-600 text-white p-4">
+  <div id="messageBar" class="bg-background font-bold text-red-500 p-4 text-center">
     <span><%= message %></span>
   </div>
   <script>
