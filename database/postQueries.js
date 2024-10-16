@@ -1,12 +1,13 @@
 const { Sequelize } = require('sequelize');
+const { Op } = require('sequelize');
 
-async function getPostsLists(filters, Post) {
+async function getPostsListsAdmin(filters, Post) {
   try {
     const results = await Post.findAll({
       where: {
         ...filters
       },
-      attributes: ['p_id', 'title', 'created_at']
+      attributes: ['p_id', 'title', 'created_at', 'u_id']
     });
     console.log(results);
     return results;
@@ -16,7 +17,47 @@ async function getPostsLists(filters, Post) {
   }
 }
 
-async function getPost(filters, db)
+async function getPostsLists(filters, requestingUsername, Post)
+{
+ 
+  try {
+    const whereClause = {
+      [Op.or]: [
+        { visibility: 'public' },
+        { username: requestingUsername }
+      ]
+    };
+
+    // Apply username filter if provided
+    if (filters.username) {
+      whereClause.username = filters.username;
+    }
+
+    // Apply search filter if provided
+    if (filters.search) {
+      whereClause.title = {
+        [Op.like]: `%${filters.search}%`
+      };
+    }
+
+    const postList = await Post.findAll({
+      where: whereClause,
+      attributes: ['p_id', 'title', 'created_at', 'username', 'visibility'],
+      order: [['created_at', 'DESC']]
+    });
+
+    if (!postList || postList.length === 0) {
+      return [];
+    }
+
+    return postList;
+  } catch (error) {
+    console.error('Error fetching posts:', error);
+    throw error;
+  }
+}
+
+async function getPostAdmin(filters, db)
 {
     const { User, Post } = db;
       try {
@@ -32,10 +73,43 @@ async function getPost(filters, db)
     console.log(results);
     return results;
   } catch (error) {
-    console.error('Error selecting rows:', error);
+        console.error('Error selecting rows:', error);
+        throw error;
   }
 }
 
+async function getPost(Post, filters, username)
+{
+ // let foundPost = null;
+  let isEditable = false;
+  try {
+    const foundPost = await Post.findOne({
+      where: {
+        ...filters
+      },
+
+      attributes: ['p_id', 'title', 'content', 'username', 'visibility', 'created_at', 'updated_at']
+    })
+    if (!foundPost) {
+      return null; // Post not found
+    }
+
+    if (foundPost.username === username) {
+      isEditable = true;
+      return { foundPost, isEditable }; // Username matches, return the post
+    }
+
+    if (foundPost.visibility === 'public') {
+      return { foundPost, isEditable }; // Post is public, return it
+    }
+
+    return null; // Username doesn't match and post is not public
+  } catch (error)
+  {
+    console.error("Error fetching Post" + error);
+    throw error;
+  }
+}
 
 async function createPost(data, db)
 {
@@ -50,7 +124,8 @@ async function createPost(data, db)
         return true;
     }).catch((err) => {
         if (err) {
-            console.log(err);
+          console.log(err);
+          
             }
     })
 }
@@ -81,4 +156,4 @@ async function updatePost(data, db)
         })
 }
 
-module.exports = { getPostsLists, getPost, createPost, updatePost };
+module.exports = { getPostsLists, getPostsListsAdmin, getPost, getPostAdmin, createPost, updatePost };

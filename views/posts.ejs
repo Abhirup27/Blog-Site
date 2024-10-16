@@ -9,7 +9,7 @@
         <div class="flex justify-between items-center border-b border-gray-200 pb-4">
           <div>
             <h3 class="text-xl font-semibold">
-              <a href="/posts/<%= posts1[index].id %>" class="hover:text-primary"><%= posts1[index].title %></a>
+              <a href="/posts/<%= posts1[index].p_id %>" class="hover:text-primary"><%= posts1[index].title %></a>
             </h3>
             <p class="text-sm text-gray-500"><%= formatDate(posts1[index].created_at) %></p>
           </div>
@@ -18,8 +18,8 @@
               Options
             </button>
             <ul x-show="open" @click.away="open = false" class="absolute right-0 mt-2 w-48 bg-background border border-primary rounded-md shadow-lg z-10">
-              <li><a class="block px-4 py-2 hover:bg-primary hover:text-background" href="/posts/<%= posts[index].id %>">View</a></li>
-              <li><a class="block px-4 py-2 hover:bg-primary hover:text-background" href="/posts/<%= posts[index].id %>/edit">Edit</a></li>
+              <li><a class="block px-4 py-2 hover:bg-primary hover:text-background" href="/posts/<%= posts[index].p_id %>">View</a></li>
+              <li><a class="block px-4 py-2 hover:bg-primary hover:text-background" href="/posts/<%= posts[index].p_id %>/edit">Edit</a></li>
               <li><a class="block px-4 py-2 hover:bg-primary hover:text-background" href="#" onclick="deletePost('<%= posts[index].id %>')">Delete</a></li>
             </ul>
           </div>

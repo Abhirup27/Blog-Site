@@ -153,7 +153,7 @@ app.post('/login', async (req, res) => {
         console.log("This is after getUserLogin", user);
         
         if (user) {
-            const postsWithoutContent = await getPostsLists({username: user.dataValues.username}, Post);
+            const postsWithoutContent = await getPostsLists({username: user.dataValues.username}, user.dataValues.username, Post);
             
             res.render("posts.ejs", {
                 posts: postsWithoutContent,
@@ -234,15 +234,15 @@ app.post('/login', async (req, res) => {
 
         });
 
-        app.get("/posts/:id", (req, res) => {
+        app.get("/posts/:id", async (req, res) => {
 
             const postId = req.params.id;
             let headers = req.headers;
             let socket = req.socket;
             const sessionid = req.sessionID
             const id = req.params.id; // id of the post
-            const { foundPost, isEditable, userReq } = findPost({ id, users, headers, socket, sessionid }, false);
-
+            const { foundPost, isEditable, userReq } = await findPost({ id, users, headers, socket, sessionid }, false, verifyUser, getPost, User, Post);
+            console.log(foundPost);
             res.render("post.ejs", {
                 post: foundPost,
                 editable: isEditable,

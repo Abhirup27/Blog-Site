@@ -21,8 +21,8 @@ async function getUserLogin(userid, passwd, ipaddr, sessionid, User) {
     }
 }
 
-async function verifyUser(sessionid, ipaddr, db) {
-    const { User } = db;
+async function verifyUser(sessionid, ipaddr, User) {
+  
     try {
         return await User.findOne({
             where: {
