@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build:css": "tailwindcss -i ./public/styles/globals.css -o ./public/styles/output.css --minify"
+    "build:css": "tailwindcss -i ./public/styles/globals.css -o ./public/styles/output.css --minify",
+    "config": "node configure.js"
   },
   "repository": {
     "type": "git",

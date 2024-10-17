@@ -9,7 +9,7 @@
     "port": "DB_PORT"
   },
   "test": {
-    "use_env_variable": "DATABASE_URL",
+    "use_env_variable1": "DATABASE_URL",
     "dialect": "mariadb",
     "username": "DB_USER",
     "password": "DB_PASSWORD",
@@ -18,7 +18,7 @@
     "port": "DB_PORT"
   },
   "production": {
-    "use_env_variable": "DATABASE_URL",
+    "use_env_variable1": "DATABASE_URL",
     "dialect": "mariadb",
     "username": "DB_USER",
     "password": "DB_PASSWORD",

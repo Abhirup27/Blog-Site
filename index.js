@@ -114,7 +114,7 @@ createDatabase(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASSWORD
         const { User, Post } = db;
         db.sequelize.sync().then((req) => {
 
-            app.listen(3000, () => {
+            app.listen(port, () => {
                 console.log("server running");
             });
 
