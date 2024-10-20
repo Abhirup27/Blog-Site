@@ -130,18 +130,18 @@ async function createPost(data, db)
     })
 }
 
-async function updatePost(data, db)
+async function updatePost(data, Post)
 {
-     const { Post } = db;
+    
     Post.update({
             p_id: data.new_pid,
             title: data.title,
-            content: data.title,
+            content: data.content,
             visibility: data.visibility
         }, {
         where: {
                 p_id: data.old_pid,
-                username: userid
+                username: data.userid
             }
         })
         .then((result) => {
@@ -154,6 +154,8 @@ async function updatePost(data, db)
                 return false;
             }
         })
+  
+  return true;
 }
 
 module.exports = { getPostsLists, getPostsListsAdmin, getPost, getPostAdmin, createPost, updatePost };

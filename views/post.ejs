@@ -2,8 +2,8 @@
 <div class="max-w-4xl mx-auto mt-8 px-4">
   <% if (locals.logged && locals.editable) { %>
   <div class="flex space-x-4 mb-4">
-    <a href="/posts/<%= post.id %>/edit" class="btn">Edit Post</a>
-    <button onclick="deletePost('<%= post.id%>')" class="btn bg-red-600 hover:bg-red-700">Delete Post</button>
+    <a href="/posts/<%= post.p_id %>/edit" class="btn">Edit Post</a>
+    <button onclick="deletePost('<%= post.p_id%>')" class="btn bg-red-600 hover:bg-red-700">Delete Post</button>
   </div>
   <% } %>
   <% if (locals.post) { %>

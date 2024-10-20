@@ -31,7 +31,7 @@
      const ipAddress = getClientIp({ headers, socket });
      try{
             const userReq = await verifyUser(data.sessionid, ipAddress, User);
-
+             console.log(userReq.dataValues);
 
             // for (const user of data.users)
             // {
@@ -50,12 +50,12 @@
                 try
                 {
                     const { foundPost, isEditable } = await getPost(Post, { p_id: postId }, userReq.dataValues.username);
-                    
+                    console.log(foundPost.dataValues);
                     if (!foundPost || !isEditable)
                     {
                         if (toEdit == undefined || data.res == undefined) {
-                     
-                            return foundPost.dataValues, isEditable, userReq;
+                            console.log(foundPost.dataValues);
+                            return { foundPost:foundPost.dataValues, isEditable, userReq };
                         }
                         else if(toEdit == true && data.res != undefined)
                         {
@@ -65,7 +65,7 @@
                     
                     if (toEdit == true && data.res != undefined)
                     {
-                        data.res.cookie('editingPostId', postId, {
+                        data.res.cookie('editingPostId', foundPost.dataValues.p_id, {
                         maxAge: 3600000, //~ 1 hour
                         httpOnly: true,
                         secure: process.env.NODE_ENV === 'production',

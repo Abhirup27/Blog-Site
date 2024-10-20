@@ -18,13 +18,13 @@ const { Sequelize } = require('sequelize');
 const {getPostsLists, getPost, createPost, updatePost, getUserLogin, setUserInfo, verifyUser, newUserRegister, createDatabase}  = require('db-handler');
 
 
-function generateUUID(username, id, postTitle)
+function generateUUID(id, postTitle, date)
 {
    // const namespace = "Roop";
     const hash = crypto.createHash('sha1');
     
     // Concatenate the inputs into a single string
-    const data = `${username}${id}${postTitle}`;
+    const data = `${id}${postTitle}${date}`;
     
     hash.update(data);
     const uuid = hash.digest('hex');
@@ -121,15 +121,17 @@ createDatabase(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASSWORD
         });
 
 
-        app.get("/", (req, res) => {
+        app.get("/", async (req, res) => {
 
         const headers = req.headers;
         const socket = req.socket;
-        let user = findUser(users, { headers, socket }, req.sessionID)
+            //let user = findUser(users, { headers, socket }, req.sessionID)
+            const user = await verifyUser(req.sessionID, getClientIp({ headers, socket }), User);
         
         if (user) {
-            //res.send('Login successful!');
-            const postsWithoutContent = getPostsList(undefined,user);
+           
+            //const postsWithoutContent = getPostsList(undefined,user);
+            const postsWithoutContent = await getPostsLists({ username: user.dataValues.username }, user.dataValues.username, Post);
             res.render("posts.ejs", {
                 posts: postsWithoutContent,
                 logged: true,
@@ -153,7 +155,7 @@ app.post('/login', async (req, res) => {
         console.log("This is after getUserLogin", user);
         
         if (user) {
-            const postsWithoutContent = await getPostsLists({username: user.dataValues.username}, user.dataValues.username, Post);
+            const postsWithoutContent = await getPostsLists({username: user.username}, user.username, Post);
             
             res.render("posts.ejs", {
                 posts: postsWithoutContent,
@@ -183,18 +185,26 @@ app.post('/login', async (req, res) => {
             }
         });
 
-        app.get("/logout", (req, res) => {
+        app.get("/logout", async(req, res) => {
             const headers = req.headers;
             const socket = req.socket;
-            let user = findUser(users, { headers, socket }, req.sessionID)
+            //let user = findUser(users, { headers, socket }, req.sessionID)
+            const user = await verifyUser(req.sessionID, getClientIp({ headers, socket }), User);
             if (user) {
-      
-                user.session = ""
+                const update = await setUserInfo(user.dataValues.username, { session_id: '', ip_addr: '' }, User);
+                //user.session = ""
+                if (update === true)
+                {
                 res.clearCookie('SessionCookie');
                 res.render("index.ejs", {
                     logged: false,
                     message: "Logged out successfully!"
                 });
+                }
+                else {
+                    console.error("error updating user info");
+                }
+
             } else {
                 res.render("index.ejs", {
                     message: "No active session found."
@@ -213,7 +223,7 @@ app.post('/login', async (req, res) => {
                 if (req.body.Title) {
                     console.log(req.body.Title)
                     const newPost = {
-                        id: generateUUID(user.username, user.id, req.body.Title),
+                        id: generateUUID(user.id, req.body.Title),
                         title: req.body.Title,
                         content: req.body.Body,
                         createdAt: new Date().toISOString(),
@@ -257,20 +267,20 @@ app.post('/login', async (req, res) => {
             let socket = req.socket;
             const sessionid = req.sessionID
             const id = req.params.id; // id of the post
-            findPost({ id, users, headers, socket, sessionid, res }, true)
+            findPost({ id, users, headers, socket, sessionid, res }, true, verifyUser, getPost, User, Post);
 
         });
 
-        function updatePost(user, postId, newTitle, newContent) {
-            const postIndex = user.posts.findIndex(post => post.id === postId);
-            if (postIndex !== -1) {
-                user.posts[postIndex].title = newTitle;
-                user.posts[postIndex].content = newContent;
-                user.posts[postIndex].updatedAt = new Date().toISOString();
-                return true;
-            }
-            return false;
-        }
+        // function updatePost(user, postId, newTitle, newContent) {
+        //     const postIndex = user.posts.findIndex(post => post.id === postId);
+        //     if (postIndex !== -1) {
+        //         user.posts[postIndex].title = newTitle;
+        //         user.posts[postIndex].content = newContent;
+        //         user.posts[postIndex].updatedAt = new Date().toISOString();
+        //         return true;
+        //     }
+        //     return false;
+        // }
 
         function deletePost(user, postId) {
             const postIndex = user.posts.findIndex(post => post.id === postId);
@@ -282,25 +292,26 @@ app.post('/login', async (req, res) => {
             return false;
         }
 
-        app.post("/update", (req, res) => {
+        app.post("/update", async(req, res) => {
             //check if post id already exists in the DB, then make changes.
             // remember to change the modified at field
     
             const headers = req.headers;
             const socket = req.socket;
-            let user = findUser(users, { headers, socket }, req.sessionID)
-
+           // let user = findUser(users, { headers, socket }, req.sessionID)
+            const user = await verifyUser(req.sessionID, getClientIp({ headers, socket }), User);
             if (user) {
                 const { Title, Body } = req.body;
                 const postId = req.cookies.editingPostId;
 
                 if (postId && Title && Body) {
-                    if (updatePost(user, postId, Title, Body)) {
-                        user.updatedAt = new Date().toISOString();
+                    if (await updatePost({ new_pid: generateUUID(user.dataValues.username, Title, user.dataValues.createdAt), old_pid: postId, userid: user.dataValues.username, title: Title, content: Body, visibility: 'Public' }, Post))
+                    {
+                        //user.updatedAt = new Date().toISOString();
 
                         res.clearCookie('editingPostId');
                         res.render("posts.ejs", {
-                            posts: user.posts,
+                            posts:  await getPostsLists({username: user.dataValues.username},user.dataValues.username,Post),
                             logged: true,
                             message: "Post updated successfully!",
                             formatDate: formatDate

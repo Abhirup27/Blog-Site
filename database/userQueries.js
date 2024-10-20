@@ -10,9 +10,9 @@ async function getUserLogin(userid, passwd, ipaddr, sessionid, User) {
         });
 
         if (user) {
-            await setUserInfo(userid, passwd, ipaddr, sessionid, User);
+            await setUserInfo(userid, { ip_addr: ipaddr, session_id: sessionid }, User);
             console.log("This is the data ", user);
-            return user;
+            return user.dataValues;
         }
         return null;
     } catch (err) {
@@ -36,11 +36,10 @@ async function verifyUser(sessionid, ipaddr, User) {
     }
 }
 
-async function setUserInfo(userid, passwd, ipaddr, sessionid, User) {
+async function setUserInfo(userid,updateData, User) {
     try {
         const result = await User.update({
-            ip_addr: ipaddr,
-            session_id: sessionid
+            ...updateData
         }, {
             where: {
                 username: userid
