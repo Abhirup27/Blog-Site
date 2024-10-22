@@ -17,10 +17,9 @@ async function getPostsListsAdmin(filters, Post) {
   }
 }
 
-async function getPostsLists(filters, requestingUsername, Post)
-{
- 
+async function getPostsLists(filters, requestingUsername, Post) {
   try {
+    // Start with the base visibility conditions
     const whereClause = {
       [Op.or]: [
         { visibility: 'public' },
@@ -28,17 +27,8 @@ async function getPostsLists(filters, requestingUsername, Post)
       ]
     };
 
-    // Apply username filter if provided
-    if (filters.username) {
-      whereClause.username = filters.username;
-    }
-
-    // Apply search filter if provided
-    if (filters.search) {
-      whereClause.title = {
-        [Op.like]: `%${filters.search}%`
-      };
-    }
+    // Spread all filters into the where clause
+    Object.assign(whereClause, filters);
 
     const postList = await Post.findAll({
       where: whereClause,
@@ -47,9 +37,10 @@ async function getPostsLists(filters, requestingUsername, Post)
     });
 
     if (!postList || postList.length === 0) {
+      
       return [];
     }
-
+   
     return postList;
   } catch (error) {
     console.error('Error fetching posts:', error);
@@ -111,15 +102,16 @@ async function getPost(Post, filters, username)
   }
 }
 
-async function createPost(data, db)
+async function createPost(data, Post)
 {
-    const { User, Post } = db;
+   
     Post.create({
-        p_id: data.pid,
+        p_id: data.id,
         username: data.userid,
         title: data.title,
         content: data.content,
-        visibility: data.visibility
+      visibility: data.visibility,
+      createdAt: data.createdAt,
     }).then(() => {
         return true;
     }).catch((err) => {
@@ -158,4 +150,28 @@ async function updatePost(data, Post)
   return true;
 }
 
-module.exports = { getPostsLists, getPostsListsAdmin, getPost, getPostAdmin, createPost, updatePost };
+async function deletePost(p_id, Post)
+{
+  try
+  {
+      const deletedPost = await Post.destroy({
+        where: {
+          p_id: p_id
+        }
+      });
+    if (deletedPost)
+    {
+      return true;
+    }
+    else
+    {
+      return false;
+      }
+  }
+  catch (err)
+  {
+    console.error(err);
+  }
+}
+
+module.exports = { getPostsLists, getPostsListsAdmin, getPost, getPostAdmin, createPost, updatePost, deletePost };

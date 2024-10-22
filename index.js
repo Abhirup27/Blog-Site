@@ -15,7 +15,7 @@ const { dirname, join } = require('path');
 
 //const { User, Post} = require('./database/models');
 const { Sequelize } = require('sequelize');
-const {getPostsLists, getPost, createPost, updatePost, getUserLogin, setUserInfo, verifyUser, newUserRegister, createDatabase}  = require('db-handler');
+const {getPostsLists, getPost, createPost, updatePost, deletePost, getUserLogin, setUserInfo, verifyUser, newUserRegister, createDatabase}  = require('db-handler');
 
 
 function generateUUID(id, postTitle, date)
@@ -213,24 +213,28 @@ app.post('/login', async (req, res) => {
             // res.send("Logged out!");
         });
 
-        app.post("/publish", (req, res) => {
+        app.post("/publish", async(req, res) => {
 
             const headers = req.headers;
             const socket = req.socket;
-            let user = findUser(users, { headers, socket }, req.sessionID)
+            //let user = findUser(users, { headers, socket }, req.sessionID)
+            const user = await verifyUser(req.sessionID, getClientIp({ headers, socket }), User);
             if (user) {
 
                 if (req.body.Title) {
                     console.log(req.body.Title)
                     const newPost = {
-                        id: generateUUID(user.id, req.body.Title),
+                        id: generateUUID(user.id, req.body.Title, new Date().toISOString()),
+                        userid: user.dataValues.username,
                         title: req.body.Title,
                         content: req.body.Body,
+                        visibility: 'public',
                         createdAt: new Date().toISOString(),
                         modifiedAt: new Date().toISOString()
                     };
-                    user.posts.push(newPost);
-                    user.updatedAt = new Date().toISOString();
+                   // user.posts.push(newPost);
+                    // user.updatedAt = new Date().toISOString();
+                    const success = await createPost(newPost, Post);
         
                     res.redirect(303, '/published?success=true');
                 } else {
@@ -282,15 +286,15 @@ app.post('/login', async (req, res) => {
         //     return false;
         // }
 
-        function deletePost(user, postId) {
-            const postIndex = user.posts.findIndex(post => post.id === postId);
-            if (postIndex !== -1) {
-                user.posts.splice(postIndex, 1);
-                user.updatedAt = new Date().toISOString();
-                return true;
-            }
-            return false;
-        }
+        // function deletePost(user, postId) {
+        //     const postIndex = user.posts.findIndex(post => post.id === postId);
+        //     if (postIndex !== -1) {
+        //         user.posts.splice(postIndex, 1);
+        //         user.updatedAt = new Date().toISOString();
+        //         return true;
+        //     }
+        //     return false;
+        // }
 
         app.post("/update", async(req, res) => {
             //check if post id already exists in the DB, then make changes.
@@ -334,21 +338,22 @@ app.post('/login', async (req, res) => {
 
         });
 
-        app.post("/delete-post", (req, res) => {
+        app.post("/delete-post", async(req, res) => {
             const headers = req.headers;
             const socket = req.socket;
-            let user = findUser(users, { headers, socket }, req.sessionID)
+            const user = await verifyUser(req.sessionID, getClientIp({ headers, socket }), User);
 
             if (user) {
 
                 const postId = req.body.postId;
                 console.log('Received postId:', postId);
-
+                console.log(user.dataValues.username)
                 if (postId) {
                     // Check if the post belongs to the user
-                    const postExists = user.posts.some(post => post.id === postId);
+                    const postExists = await getPostsLists({ p_id: postId }, user.dataValues.username, Post);
+               
                     if (postExists) {
-                        if (deletePost(user, postId)) {
+                        if (await deletePost(postExists[0].dataValues.p_id, Post)) {
 
 
                             res.redirect(303, "/deleted?success=true");
@@ -370,12 +375,12 @@ app.post('/login', async (req, res) => {
         });
 
         // ?success=true
-        app.get("/published", (req, res) => {
+        app.get("/published", async(req, res) => {
 
             const headers = req.headers;
             const socket = req.socket;
-            const sessionID = req.sessionID;
-            const postsWithoutContent = getPostsList({ headers, socket, sessionID, users }, undefined)
+            const user = await verifyUser(req.sessionID, getClientIp({ headers, socket }), User);
+            const postsWithoutContent = await getPostsLists({ username: user.dataValues.username }, user.dataValues.username, Post);
             if (req.query.success == 'true') {
                 res.render("posts.ejs", { posts: postsWithoutContent, logged: true, message: "Post has been published successfully!", formatDate: formatDate });
             }
@@ -386,11 +391,11 @@ app.post('/login', async (req, res) => {
 
         });
 
-        app.get("/deleted", (req, res) => {
+        app.get("/deleted", async(req, res) => {
             const headers = req.headers;
             const socket = req.socket;
-            const sessionID = req.sessionID;
-            const postsWithoutContent = getPostsList({ headers, socket, sessionID, users }, undefined)
+             const user = await verifyUser(req.sessionID, getClientIp({ headers, socket }), User);
+            const postsWithoutContent = await getPostsLists({ username: user.dataValues.username }, user.dataValues.username, Post);
             if (req.query.success == 'true') {
                 console.log(postsWithoutContent.length)
                 res.render("posts.ejs", { posts: postsWithoutContent, logged: true, message: "Post has been removed.", formatDate: formatDate });
@@ -401,11 +406,11 @@ app.post('/login', async (req, res) => {
 
         });
 
-        app.get("/updated", (req, res) => {
+        app.get("/updated", async(req, res) => {
             const headers = req.headers;
             const socket = req.socket;
-            const sessionID = req.sessionID;
-            const postsWithoutContent = getPostsList({ headers, socket, sessionID, users }, undefined)
+            const user = await verifyUser(req.sessionID, getClientIp({ headers, socket }), User);
+            const postsWithoutContent = await getPostsLists({ username: user.dataValues.username }, user.dataValues.username, Post);
             if (req.query.success == 'true') {
                 res.render("posts.ejs", { posts: postsWithoutContent, logged: true, message: "Post has been updated.", formatDate: formatDate });
             }

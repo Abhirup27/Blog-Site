@@ -1,7 +1,7 @@
 'use strict';
 
 const { getUserLogin, setUserInfo, verifyUser, newUserRegister } = require('./userQueries');
-const { getPostsLists, getPost, createPost, updatePost } = require('./postQueries');
+const { getPostsLists, getPost, createPost, updatePost, deletePost } = require('./postQueries');
 const {createDatabase} = require('./createDB');
 const fs = require('fs');
 const path = require('path');
@@ -77,4 +77,4 @@ Object.keys(db).forEach(modelName => {
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
 
-module.exports = {getPostsLists, getPost, createPost, updatePost, getUserLogin, setUserInfo, verifyUser, newUserRegister, createDatabase,db};
+module.exports = {getPostsLists, getPost, createPost, updatePost, deletePost, getUserLogin, setUserInfo, verifyUser, newUserRegister, createDatabase,db};
