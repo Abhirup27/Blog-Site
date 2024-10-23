@@ -171,17 +171,17 @@ app.post('/login', async (req, res) => {
     }
 });
         
-        app.post('/register',(req, res) => {
-            const { username, password,email } = req.body;
+        app.post('/register',async(req, res) => {
+            const { username, password,email, name } = req.body;
 
-            let user = findUser(users, undefined, undefined, { username, password });
+            const user = await newUserRegister(username, email, password, name, User)
 
             if (user)
             {
-                res.render("index.ejs", { message: "Email or username already used. Registration failed!" });
+                res.render("index.ejs", { message: "Verification mail sent to your email. Verify to keep your account!" });
             }
             else {
-                // make changes to DB; Send Email verification;
+                 res.render("index.ejs", { message: "Email or username already used.Registration failed!" });
             }
         });
 

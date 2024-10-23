@@ -53,16 +53,22 @@ async function setUserInfo(userid,updateData, User) {
     }
 }
 
-async function newUserRegister(userid, email, passwd, name, db) {
-    const { User } = db;
+async function newUserRegister(userid, email, passwd, name, User) {
+    
     try {
-        const existingUser = await User.findOne({
+        const existingUserByUsername = await User.findOne({
             where: {
                 username: userid
             }
         });
-        
-        if (!existingUser) {
+
+        const existingUserByEmail = await User.findOne({
+            where: {
+                email: email
+            }
+        });
+       
+        if (!existingUserByUsername || !existingUserByEmail) {
             await User.create({
                 username: userid,
                 email: email,
@@ -71,6 +77,7 @@ async function newUserRegister(userid, email, passwd, name, db) {
             });
             return true;
         }
+        console.log(existingUserByUsername);
         return false;
     } catch (err) {
         console.log(err);

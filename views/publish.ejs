@@ -1,24 +1,257 @@
 <%- include("partials/header.ejs") %>
 <div class="max-w-2xl mx-auto mt-8 px-4">
-  <form action="<% if (locals.post) { %>/update<% } else {%>/publish<%}%>" method="post" class="space-y-4">
-    <input 
-      type="text" 
-      class="input w-full" 
-      name="Title" 
-      placeholder="Title heading" 
-      required 
+  <form id="publishForm" action="<% if (locals.post) { %>/update<% } else {%>/publish<%}%>" method="post" class="space-y-4">
+    <input
+      type="text"
+      class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+      name="Title"
+      placeholder="Title heading"
+      required
       autofocus
       value="<%= (locals.post && locals.logged && locals.editable) ? post.title : '' %>"
     >
-    <textarea 
-      class="input w-full h-40" 
-      name="Body" 
-      placeholder="Body" 
-      required
-    ><%= (locals.post && locals.logged && locals.editable) ? post.content : '' %></textarea>
-    <button class="btn w-full" type="submit">
+    
+    <!-- Rich Text Editor Container -->
+    <div class="border border-gray-200 rounded-lg overflow-hidden">
+      <!-- Toolbar -->
+      <div class="flex flex-wrap gap-2 p-2 bg-gray-50 border-b border-gray-200">
+        <div class="flex gap-1 pr-2 border-r border-gray-200">
+          <button type="button" class="editor-btn" data-command="formatBlock" data-value="H1">H1</button>
+          <button type="button" class="editor-btn" data-command="formatBlock" data-value="H2">H2</button>
+          <button type="button" class="editor-btn" data-command="formatBlock" data-value="H3">H3</button>
+        </div>
+        
+        <div class="flex gap-1 pr-2 border-r border-gray-200">
+          <button type="button" class="editor-btn" data-command="bold" title="Bold">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"></path>
+              <path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"></path>
+            </svg>
+          </button>
+          <button type="button" class="editor-btn" data-command="italic" title="Italic">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="19" y1="4" x2="10" y2="4"></line>
+              <line x1="14" y1="20" x2="5" y2="20"></line>
+              <line x1="15" y1="4" x2="9" y2="20"></line>
+            </svg>
+          </button>
+          <button type="button" class="editor-btn" data-command="underline" title="Underline">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M6 3v7a6 6 0 0 0 6 6 6 6 0 0 0 6-6V3"></path>
+              <line x1="4" y1="21" x2="20" y2="21"></line>
+            </svg>
+          </button>
+        </div>
+        
+        <div class="flex gap-1 pr-2 border-r border-gray-200">
+          <button type="button" class="editor-btn" data-command="insertUnorderedList" title="Bullet List">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="8" y1="6" x2="21" y2="6"></line>
+              <line x1="8" y1="12" x2="21" y2="12"></line>
+              <line x1="8" y1="18" x2="21" y2="18"></line>
+              <line x1="3" y1="6" x2="3.01" y2="6"></line>
+              <line x1="3" y1="12" x2="3.01" y2="12"></line>
+              <line x1="3" y1="18" x2="3.01" y2="18"></line>
+            </svg>
+          </button>
+          <button type="button" class="editor-btn" data-command="insertOrderedList" title="Numbered List">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="10" y1="6" x2="21" y2="6"></line>
+              <line x1="10" y1="12" x2="21" y2="12"></line>
+              <line x1="10" y1="18" x2="21" y2="18"></line>
+              <path d="M4 6h1v4"></path>
+              <path d="M4 10h2"></path>
+              <path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"></path>
+            </svg>
+          </button>
+          <button type="button" class="editor-btn" data-command="insertHTML" data-value="<blockquote>Quote</blockquote>" title="Quote">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"></path>
+              <path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"></path>
+            </svg>
+          </button>
+        </div>
+
+        <div class="flex gap-1">
+          <button type="button" class="editor-btn" id="uploadButton" title="Upload Image">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Editor -->
+      <div id="editor" class="w-full min-h-[300px] p-4 focus:outline-none" contenteditable="true">
+        <%= (locals.post && locals.logged && locals.editable) ? post.content : '' %>
+      </div>
+      
+      <!-- Hidden textarea for form submission -->
+<textarea
+  id="hiddenBody"
+  class="sr-only"
+  name="Body"
+  required
+  tabindex="-1"
+><%= (locals.post && locals.logged && locals.editable) ? post.content : '' %></textarea>
+    </div>
+
+    <!-- Hidden field for storing processed image data -->
+    <input type="hidden" id="imageData" name="imageData">
+    
+    <button class="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors" type="submit">
       <% if (locals.post) { %>Update<% } else {%>Publish<%}%>
     </button>
   </form>
 </div>
+
+<input type="file" id="fileInput" accept="image/*" class="hidden">
+
+<style>
+  .editor-btn {
+    @apply p-2 rounded hover:bg-gray-200 transition-colors;
+  }
+  .editor-btn.active {
+    @apply bg-gray-200;
+  }
+</style>
+
+<script>
+
+  document.addEventListener('DOMContentLoaded', () => {
+  // Initialize hiddenBody with editor content if it exists
+  const initialContent = editor.innerHTML;
+  if (initialContent) {
+    hiddenBody.value = initialContent;
+  }
+});
+// Image Store from previous code
+const ImageStore = {
+  images: [],
+  add(imageData) {
+    const index = this.images.length;
+    this.images.push(imageData);
+    return index;
+  },
+  get(index) {
+    return this.images[index];
+  },
+  clear() {
+    this.images = [];
+  }
+};
+
+// Initialize editor
+const editor = document.getElementById('editor');
+const fileInput = document.getElementById('fileInput');
+const uploadButton = document.getElementById('uploadButton');
+const publishForm = document.getElementById('publishForm');
+const hiddenBody = document.getElementById('hiddenBody');
+const imageDataInput = document.getElementById('imageData');
+
+// Format buttons handler
+document.querySelectorAll('.editor-btn[data-command]').forEach(button => {
+  button.addEventListener('click', () => {
+    const command = button.getAttribute('data-command');
+    const value = button.getAttribute('data-value') || '';
+    
+    document.execCommand(command, false, value);
+    editor.focus();
+    updateButtonStates();
+  });
+});
+
+// Update button states based on current selection
+function updateButtonStates() {
+  document.querySelectorAll('.editor-btn[data-command]').forEach(button => {
+    const command = button.getAttribute('data-command');
+    if (command === 'formatBlock') {
+      const value = button.getAttribute('data-value');
+      const active = document.queryCommandValue('formatBlock') === value.toLowerCase();
+      button.classList.toggle('active', active);
+    } else {
+      const active = document.queryCommandState(command);
+      button.classList.toggle('active', active);
+    }
+  });
+}
+
+// Process content before form submission
+function processContent() {
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = editor.innerHTML;
+  
+  // Find all images in the content
+  const images = tempDiv.getElementsByTagName('img');
+  const imagesArray = Array.from(images);
+  
+  // Process each image
+  imagesArray.forEach(img => {
+    const imageData = {
+      src: img.src,
+      alt: img.alt || '',
+      width: img.width || '',
+      height: img.height || ''
+    };
+    
+    const imageIndex = ImageStore.add(imageData);
+    const placeholder = document.createElement('span');
+    placeholder.textContent = `<IMG:${imageIndex}>`;
+    img.parentNode.replaceChild(placeholder, img);
+  });
+  
+  return {
+    content: tempDiv.innerHTML,
+    images: ImageStore.images
+  };
+}
+
+// Handle form submission
+publishForm.addEventListener('submit', (e) => {
+  e.preventDefault(); // Prevent default submission
+  
+  // Check if editor has content
+  if (!editor.textContent.trim() && !editor.querySelector('img')) {
+    alert('Content is required');
+    editor.focus();
+    return;
+  }
+
+  const processedData = processContent();
+  hiddenBody.value = processedData.content;
+  imageDataInput.value = JSON.stringify(processedData.images);
+  
+  // If validation passes, submit the form
+  publishForm.submit();
+});
+// File upload handling
+uploadButton.addEventListener('click', () => {
+  fileInput.click();
+});
+
+fileInput.addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (file && file.type.startsWith('image/')) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      document.execCommand('insertImage', false, e.target.result);
+    };
+    reader.readAsDataURL(file);
+  }
+  fileInput.value = '';
+});
+
+editor.addEventListener('input', () => {
+  hiddenBody.value = editor.innerHTML;
+});
+if (hiddenBody.value) {
+  editor.innerHTML = hiddenBody.value;
+}
+
+// Editor event listeners
+editor.addEventListener('mouseup', updateButtonStates);
+editor.addEventListener('keyup', updateButtonStates);
+</script>
 <%- include("partials/footer.ejs") %>
