@@ -10,6 +10,7 @@
         "connectionHandler.js",
         "userQueries.js",
         "postQueries.js",
+        "imageQueries.js",
         "./models/User.js",
         "./createDB.js",
         "./index.js"
