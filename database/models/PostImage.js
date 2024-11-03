@@ -22,7 +22,7 @@ module.exports = (sequelize, DataTypes) => {
   });
 
   PostImage.associate = (models) => {
-    // You can add additional associations here if needed
+   
   };
 
   return PostImage;

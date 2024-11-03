@@ -3,6 +3,7 @@ dotenv.config();
 const express = require("express");
 const bodyparser = require("body-parser");
 const { formatDate } = require("utils");
+const { processHtml } = require("utils");
 const { findUser, findPost, getPostsList, getClientIp } = require("utils/userIdentification");
 //const { getConnection } = require("db-handler/connection-handler");
 const json = require("json");
@@ -10,12 +11,19 @@ const { v4: uuid } = require('uuid');
 const session = require("express-session");
 const crypto = require("crypto");
 const cookieParser = require("cookie-parser");
+
 const { fileURLToPath } = require('url');
+
 const { dirname, join } = require('path');
+const multer = require('multer');
+const cheerio = require('cheerio');
+const sanitizeHtml = require('sanitize-html');
 
 //const { User, Post} = require('./database/models');
+
 const { Sequelize } = require('sequelize');
-const {getPostsLists, getPost, createPost, updatePost, deletePost, getUserLogin, setUserInfo, verifyUser, newUserRegister, createDatabase}  = require('db-handler');
+const { getPostsLists, getPost, createPost, updatePost, deletePost, getUserLogin, setUserInfo, verifyUser, newUserRegister, createDatabase,
+        getImages, storeImage, getImageId, createImageLink } = require('db-handler');
 
 
 function generateUUID(id, postTitle, date)
@@ -107,11 +115,59 @@ app.use(cookieParser());
 
 //==========SETTING UP EXPRESSJS===========//
 
+//==========SETTING UP MULTER===========//
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const uploadDir = 'public/uploads';
+
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: function (req, file, cb) {
+
+    // Create unique filename with original extension
+
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+  },
+  fileFilter: function (req, file, cb) {
+    // Accept images only
+    if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/i)) {
+      return cb(new Error('Only image files are allowed!'), false);
+    }
+    cb(null, true);
+  }
+});
+
+// Error handler for multer errors
+app.use((error, req, res, next) => {
+  if (error instanceof multer.MulterError) {
+    if (error.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({ error: 'File size is too large. Max size is 10 MB' });
+    }
+    return res.status(400).json({ error: error.message });
+  }
+  next(error);
+});
+
+
+//==========SETTING UP MULTER===========//
+
 
 createDatabase(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASSWORD, process.env.DB_HOST)
     .then(() => {
          const {db} = require('./database');
-        const { User, Post } = db;
+        const { User, Post, Image, PostImage } = db;
         db.sequelize.sync().then((req) => {
 
             app.listen(port, () => {
@@ -217,17 +273,28 @@ app.post('/login', async (req, res) => {
 
             const headers = req.headers;
             const socket = req.socket;
+
+            const imgData = req.body.imageData;
+
             //let user = findUser(users, { headers, socket }, req.sessionID)
             const user = await verifyUser(req.sessionID, getClientIp({ headers, socket }), User);
             if (user) {
 
                 if (req.body.Title) {
                     console.log(req.body.Title)
+                    const sanitizedHtml = sanitizeHtml(req.body.Body, {
+                        allowedTags: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'ul', 'ol', 'li', 'br', 'b','i','u','span', 'img'],
+                        allowedAttributes: {
+                        '*': ['class']
+                        }
+                    });
+
+
                     const newPost = {
                         id: generateUUID(user.id, req.body.Title, new Date().toISOString()),
                         userid: user.dataValues.username,
                         title: req.body.Title,
-                        content: req.body.Body,
+                        content: sanitizedHtml,
                         visibility: 'public',
                         createdAt: new Date().toISOString(),
                         modifiedAt: new Date().toISOString()
@@ -235,7 +302,11 @@ app.post('/login', async (req, res) => {
                    // user.posts.push(newPost);
                     // user.updatedAt = new Date().toISOString();
                     const success = await createPost(newPost, Post);
-        
+
+                    imgData.forEach(element => {
+                        
+                    });
+                    const postimglinks = await createImageLink
                     res.redirect(303, '/published?success=true');
                 } else {
                     res.render("publish.ejs", {
@@ -257,8 +328,11 @@ app.post('/login', async (req, res) => {
             const id = req.params.id; // id of the post
             const { foundPost, isEditable, userReq } = await findPost({ id, users, headers, socket, sessionid }, false, verifyUser, getPost, User, Post);
             console.log(foundPost);
+
+            const processedHtml = processHtml(foundPost.content, undefined);
+            console.log("This is the processed HTML!!" +processedHtml);
             res.render("post.ejs", {
-                post: foundPost,
+                post: {p_id: foundPost.p_id, title:foundPost.title, content: processedHtml,username:foundPost.username,created_at: foundPost.created_at,updated_at:foundPost.updated_at},
                 editable: isEditable,
                 logged: !!userReq
             });
@@ -309,7 +383,16 @@ app.post('/login', async (req, res) => {
                 const postId = req.cookies.editingPostId;
 
                 if (postId && Title && Body) {
-                    if (await updatePost({ new_pid: generateUUID(user.dataValues.username, Title, user.dataValues.createdAt), old_pid: postId, userid: user.dataValues.username, title: Title, content: Body, visibility: 'Public' }, Post))
+                     const sanitizedHtml = sanitizeHtml(Body, {
+                        allowedTags: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'ul', 'ol', 'li', 'br', 'b','i','u','span', 'img'],
+                        allowedAttributes: {
+                        '*': ['class']
+                        }
+                    });
+                    if (await updatePost({
+                        new_pid: generateUUID(user.dataValues.username, Title, user.dataValues.createdAt),
+                        old_pid: postId, userid: user.dataValues.username, title: Title, content: sanitizedHtml, visibility: 'Public'
+                    }, Post))
                     {
                         //user.updatedAt = new Date().toISOString();
 
@@ -419,6 +502,35 @@ app.post('/login', async (req, res) => {
             }
 
         });
+
+        app.post('/upload', upload.single('image'), async (req, res) => {
+            const headers = req.headers;
+            const socket = req.socket;
+            try {
+                const user = await verifyUser(req.sessionID, getClientIp({ headers, socket }), User);
+                if (user.dataValues.session_id == req.sessionID) {
+                    if (!req.file) {
+                        return res.status(400).json({ error: 'No file uploaded' });
+                    }
+                    const fileUrl = `/uploads/${req.file.filename}`;
+                    const imgstore = await storeImage({ i_id: req.file.filename, username: user.dataValues.username, file_path: fileUrl, visibility: 'public' });
+                                 
+                    if (imgstore)
+                    {    
+                        res.json({
+                            url: fileUrl
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Upload error:', error);
+                res.status(500).json({ error: 'Failed to upload file' });
+            }
+        });
+        
+        app.get('/hidden', (req, res) => {
+            res.render("hidden.ejs");
+        })
     })
       .catch((err) => {
     console.error("Error creating database:", err);

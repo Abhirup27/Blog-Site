@@ -1,6 +1,6 @@
 {
   "name": "utils",
-  "description": "process dates, user Identification",
+  "description": "process dates, posts, user Identification",
   "version": "1.0.0",
   "license": "MIT",
   "repository": "utils",
@@ -9,6 +9,7 @@
   "files": [
     "index.js",
     "dateUtils.js",
-    "userIdentification.js"
+    "userIdentification.js",
+    "processPost.js"
   ]
 }

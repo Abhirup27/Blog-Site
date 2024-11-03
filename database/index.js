@@ -3,12 +3,11 @@
 const { getUserLogin, setUserInfo, verifyUser, newUserRegister } = require('./userQueries');
 const { getPostsLists, getPost, createPost, updatePost, deletePost } = require('./postQueries');
 const { createDatabase } = require('./createDB');
-const { storeImage, getImages } = require('./imageQueries');
+const { storeImage, getImages,createImageLink,getImageId } = require('./imageQueries');
 const fs = require('fs');
 const path = require('path');
 const {Sequelize, DataTypes} = require('sequelize');
 const process = require('process');
-const { storeImage } = require('./imageQueries');
 const basename = path.basename(__filename);
 const env = process.env.NODE_ENV || 'development';
 const config = require(__dirname + '/config/config.json')[env];
@@ -79,4 +78,4 @@ Object.keys(db).forEach(modelName => {
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
 
-module.exports = {getPostsLists, getPost, createPost, updatePost, deletePost, getUserLogin, setUserInfo, verifyUser, newUserRegister, createDatabase, storeImage, getImages,db};
+module.exports = {getPostsLists, getPost, createPost, updatePost, deletePost, getUserLogin, setUserInfo, verifyUser, newUserRegister, createDatabase, storeImage, getImages, createImageLink,getImageId,db};

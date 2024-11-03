@@ -105,7 +105,7 @@ async function getPost(Post, filters, username)
 async function createPost(data, Post)
 {
    
-    Post.create({
+   const result = await Post.create({
         p_id: data.id,
         username: data.userid,
         title: data.title,
@@ -120,6 +120,8 @@ async function createPost(data, Post)
           
             }
     })
+  
+  return result;
 }
 
 async function updatePost(data, Post)

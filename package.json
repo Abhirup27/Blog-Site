@@ -21,6 +21,7 @@
   "homepage": "https://github.com/Abhirup27/Blog-Site#readme",
   "dependencies": {
     "autoprefixer": "^10.4.20",
+    "cheerio": "^1.0.0",
     "cookie-parser": "^1.4.6",
     "db-handler": "file:database",
     "dotenv": "^16.4.5",
@@ -29,8 +30,10 @@
     "express-session": "^1.18.0",
     "json": "^11.0.0",
     "mariadb": "^3.3.2",
+    "multer": "^1.4.5-lts.1",
     "postcss": "^8.4.47",
     "react-icons": "^5.3.0",
+    "sanitize-html": "^2.13.1",
     "sequelize": "^6.37.3",
     "tailwindcss": "^3.4.13",
     "utils": "file:utils",
