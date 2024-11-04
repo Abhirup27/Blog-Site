@@ -15,6 +15,8 @@ const cookieParser = require("cookie-parser");
 const { fileURLToPath } = require('url');
 
 const { dirname, join } = require('path');
+const path = require('path');
+const fs = require('fs');
 const multer = require('multer');
 const cheerio = require('cheerio');
 const sanitizeHtml = require('sanitize-html');
@@ -23,7 +25,7 @@ const sanitizeHtml = require('sanitize-html');
 
 const { Sequelize } = require('sequelize');
 const { getPostsLists, getPost, createPost, updatePost, deletePost, getUserLogin, setUserInfo, verifyUser, newUserRegister, createDatabase,
-        getImages, storeImage, getImageId, createImageLink } = require('db-handler');
+        getImages, storeImage, getImagePath, createImageLink } = require('db-handler');
 
 
 function generateUUID(id, postTitle, date)
@@ -274,8 +276,7 @@ app.post('/login', async (req, res) => {
             const headers = req.headers;
             const socket = req.socket;
 
-            const imgData = req.body.imageData;
-
+            
             //let user = findUser(users, { headers, socket }, req.sessionID)
             const user = await verifyUser(req.sessionID, getClientIp({ headers, socket }), User);
             if (user) {
@@ -303,10 +304,20 @@ app.post('/login', async (req, res) => {
                     // user.updatedAt = new Date().toISOString();
                     const success = await createPost(newPost, Post);
 
-                    imgData.forEach(element => {
-                        
+                    const imgData = req.body.imageData;
+                    const images = Array.isArray(imgData) ? imgData : JSON.parse(imgData);
+                    console.log(images);
+
+                    images.forEach(async (element) => {
+                        const width = element.width;
+                        const height = element.height;
+                        console.log(element)
+                        const id = element.src.replace('http://localhost:8080/uploads/', '');
+                        console.log(id);
+                        await createImageLink({ i_id: id, p_id: newPost.id, width: element.width, height: element.height }, PostImage);
                     });
-                    const postimglinks = await createImageLink
+
+                   
                     res.redirect(303, '/published?success=true');
                 } else {
                     res.render("publish.ejs", {
@@ -327,9 +338,11 @@ app.post('/login', async (req, res) => {
             const sessionid = req.sessionID
             const id = req.params.id; // id of the post
             const { foundPost, isEditable, userReq } = await findPost({ id, users, headers, socket, sessionid }, false, verifyUser, getPost, User, Post);
-            console.log(foundPost);
-
-            const processedHtml = processHtml(foundPost.content, undefined);
+            console.log(foundPost.p_id);
+            
+            const imageData = await getImages(foundPost.p_id, PostImage);
+            console.log(imageData);
+            const processedHtml = await processHtml(foundPost.content, imageData,Image);
             console.log("This is the processed HTML!!" +processedHtml);
             res.render("post.ejs", {
                 post: {p_id: foundPost.p_id, title:foundPost.title, content: processedHtml,username:foundPost.username,created_at: foundPost.created_at,updated_at:foundPost.updated_at},
@@ -396,6 +409,18 @@ app.post('/login', async (req, res) => {
                     {
                         //user.updatedAt = new Date().toISOString();
 
+                        const imgData = req.body.imageData;
+                        const images = Array.isArray(imgData) ? imgData : JSON.parse(imgData);
+                        console.log(images);
+
+                        images.forEach(async (element) => {
+                            const width = element.width;
+                            const height = element.height;
+                            console.log(element)
+                            const id = element.src.replace('http://localhost:8080/uploads/', '');
+                            console.log(id);
+                            await createImageLink({ i_id: id, p_id: newPost.id, width: element.width, height: element.height }, PostImage);
+                        });
                         res.clearCookie('editingPostId');
                         res.render("posts.ejs", {
                             posts:  await getPostsLists({username: user.dataValues.username},user.dataValues.username,Post),
@@ -507,18 +532,22 @@ app.post('/login', async (req, res) => {
             const headers = req.headers;
             const socket = req.socket;
             try {
+                console.log("This is sessionID: "+ req.sessionID)
                 const user = await verifyUser(req.sessionID, getClientIp({ headers, socket }), User);
+                console.log("This is sessionID: "+ req.sessionID)
                 if (user.dataValues.session_id == req.sessionID) {
                     if (!req.file) {
                         return res.status(400).json({ error: 'No file uploaded' });
                     }
+                    const id =  req.file.filename;
                     const fileUrl = `/uploads/${req.file.filename}`;
-                    const imgstore = await storeImage({ i_id: req.file.filename, username: user.dataValues.username, file_path: fileUrl, visibility: 'public' });
+                    const imgstore = await storeImage({ i_id: req.file.filename, username: user.dataValues.username, file_path: fileUrl, visibility: 'public' }, Image);
                                  
                     if (imgstore)
                     {    
                         res.json({
-                            url: fileUrl
+                            url: fileUrl,
+                            i_id: id
                         });
                     }
                 }

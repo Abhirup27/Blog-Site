@@ -15,10 +15,20 @@ module.exports = (sequelize, DataTypes) => {
         model: 'Images',
         key: 'i_id'
       }
+    },
+      width: {
+      type: DataTypes.SMALLINT,
+      allowNull: false
+    },
+    height: {
+      type: DataTypes.SMALLINT, 
+      allowNull: false
     }
   }, {
     tableName: 'PostImages',
-    timestamps: false
+     timestamps: true,
+     createdAt: 'created_at',
+      updatedAt: 'updated_at'
   });
 
   PostImage.associate = (models) => {

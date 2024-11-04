@@ -2,54 +2,73 @@ const { Sequelize } = require('sequelize');
 const { Op } = require('sequelize');
 
 
-async function getImages(postId, PostImage, Image) {
+async function getImages(postId, PostImage) {
     try {
-        const result = PostImage.findAll({
+        const result = await PostImage.findAll({
             where: {
                 p_id: postId
             }
 
         })
+
+        console.log("THIS IS THE RESULT!!"+ result.dataValues)
         return result;
     }
     catch (err)
     {
         console.error("Error fetching post images from the DB " + err);
+        throw err;
 
     }
 }
 async function storeImage(data, Image)
 {
-    const result =  await Image.create({
+    try
+    {
+        const result = await Image.create({
         i_id: data.i_id,
         username: data.username,
         file_path: data.file_path,
         visibility: data.visibility
-    }).then((result) => {
-        console.log("Image Created in DB: " + result);
-    }).catch((err) => {
-        console.error("Error creating DB entry in images:" + err);
     })
     console.log(result);
     return result;
-}
-
-async function createImageLink(data, PostImage)
-{
-    try {
-        const result = await PostImage.create({
-
-            i_id: data.i_id,
-            p_id: data.p_id
-        })
-        return result;
     } catch (err)
     {
-        console.error("error creating image link with post" + err);
+        console.error("Error creating DB entry in images:" + err);
+        throw err;
     }
 }
 
-async function getImageId(filters, Image)
+async function createImageLink(data, PostImage) {
+    try {
+        // First check if entry exists
+        const existingLink = await PostImage.findOne({
+            where: {
+                i_id: data.i_id,
+                p_id: data.p_id
+            }
+        });
+
+        if (!existingLink) {
+            const result = await PostImage.create({
+                i_id: data.i_id,
+                p_id: data.p_id,
+                width: data.width,
+                height: data.height
+            });
+            return result;
+        }
+
+        return existingLink;
+        
+    } catch (err) {
+        console.error("error creating image link with post: " + err);
+        throw err;
+    }
+}
+
+async function getImagePath(filters, Image)
 {
     try {
         const result = await Image.findOne({
@@ -57,7 +76,7 @@ async function getImageId(filters, Image)
             where: {
                 ...filters
             },
-            //attributes: ['i_id']
+            attributes: ['file_path']
         })
 
         if (!result) {
@@ -67,11 +86,11 @@ async function getImageId(filters, Image)
 
     } catch (err)
     {
-        console.error("Error fetching Image" + error);
-        throw error;
+        console.error("Error fetching Image" + err);
+        throw err;
     }
 
 
     
 }
-module.exports = {getImages,storeImage, getImageId, createImageLink};
+module.exports = {getImages,storeImage, getImagePath, createImageLink};
