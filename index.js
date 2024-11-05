@@ -312,7 +312,8 @@ app.post('/login', async (req, res) => {
                         const width = element.width;
                         const height = element.height;
                         console.log(element)
-                        const id = element.src.replace('http://localhost:8080/uploads/', '');
+                        //const id = element.src.replace('http://localhost:8080/uploads/', '');
+                        const id = element.src.substring(element.src.lastIndexOf('/') + 1);
                         console.log(id);
                         await createImageLink({ i_id: id, p_id: newPost.id, width: element.width, height: element.height }, PostImage);
                     });
@@ -417,7 +418,8 @@ app.post('/login', async (req, res) => {
                             const width = element.width;
                             const height = element.height;
                             console.log(element)
-                            const id = element.src.replace('http://localhost:8080/uploads/', '');
+                            //const id = element.src.replace('http://localhost:8080/uploads/', '');
+                            const id = element.src.substring(element.src.lastIndexOf('/') + 1);
                             console.log(id);
                             await createImageLink({ i_id: id, p_id: newPost.id, width: element.width, height: element.height }, PostImage);
                         });

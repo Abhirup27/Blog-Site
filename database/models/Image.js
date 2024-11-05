@@ -19,6 +19,10 @@ module.exports = (sequelize, DataTypes) => {
     visibility: {
       type: DataTypes.ENUM('public', 'private', 'friends'),
       defaultValue: 'private'
+    },
+    used: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: 'false'
     }
   }, {
     tableName: 'Images',
