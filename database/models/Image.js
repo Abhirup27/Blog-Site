@@ -22,7 +22,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     used: {
       type: DataTypes.BOOLEAN,
-      defaultValue: 'false'
+      defaultValue: false
     }
   }, {
     tableName: 'Images',

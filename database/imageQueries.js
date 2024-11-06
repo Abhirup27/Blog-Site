@@ -29,7 +29,8 @@ async function storeImage(data, Image)
         i_id: data.i_id,
         username: data.username,
         file_path: data.file_path,
-        visibility: data.visibility
+            visibility: data.visibility,
+            used: false
     })
     console.log(result);
     return result;
@@ -40,7 +41,7 @@ async function storeImage(data, Image)
     }
 }
 
-async function createImageLink(data, PostImage) {
+async function createImageLink(data, PostImage, Image) {
     try {
         // First check if entry exists
         const existingLink = await PostImage.findOne({
@@ -57,6 +58,14 @@ async function createImageLink(data, PostImage) {
                 width: data.width,
                 height: data.height
             });
+            const markImageUsed = await Image.update(
+                {
+                    used: true
+                },
+                {
+                where: {i_id:data.i_id}
+                }
+            )
             return result;
         }
 

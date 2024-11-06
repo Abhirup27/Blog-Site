@@ -170,7 +170,7 @@ createDatabase(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASSWORD
     .then(() => {
          const {db} = require('./database');
         const { User, Post, Image, PostImage } = db;
-        db.sequelize.sync().then((req) => {
+        db.sequelize.sync({force:true}).then((req) => {
 
             app.listen(port, () => {
                 console.log("server running");
@@ -315,7 +315,7 @@ app.post('/login', async (req, res) => {
                         //const id = element.src.replace('http://localhost:8080/uploads/', '');
                         const id = element.src.substring(element.src.lastIndexOf('/') + 1);
                         console.log(id);
-                        await createImageLink({ i_id: id, p_id: newPost.id, width: element.width, height: element.height }, PostImage);
+                        await createImageLink({ i_id: id, p_id: newPost.id, width: element.width, height: element.height }, PostImage, Image);
                     });
 
                    
