@@ -30,7 +30,7 @@ module.exports = ( sequelize, DataTypes ) => {
      Post.associate = (models) => {
          Post.belongsTo(models.User, { foreignKey: 'username' });
          Post.belongsToMany(models.Image, { 
-            through: 'PostImages',
+            through: 'PostImage',
             foreignKey: 'p_id',
             otherKey: 'i_id'
         });

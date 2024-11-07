@@ -90,6 +90,36 @@
 
     <!-- Hidden field for storing processed image data -->
     <input type="hidden" id="imageData" name="imageData">
+     <div class="flex items-center gap-4">
+      <!-- Visibility dropdown -->
+      <div class="relative flex items-center gap-2">
+        
+        <div class="relative">
+          <input type="hidden" name="visibility" id="visibilityInput" value="<%= locals.visibility || 'public' %>">
+          <button 
+            type="button" 
+            id="visibilityButton"
+            class="inline-flex items-center justify-between px-3 py-2 text-sm font-medium border border-gray-200 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <span id="currentVisibility">Public</span>
+          </button>
+          <ul 
+            id="visibilityDropdown"
+            class="hidden absolute left-0 mt-1 w-32 bg-black border border-gray-200 rounded-lg shadow-lg z-10"
+          >
+            <li>
+              <button type="button" class="w-full px-4 py-2 text-sm text-left hover:bg-gray-100" data-value="public">
+                Public
+              </button>
+            </li>
+            <li>
+              <button type="button" class="w-full px-4 py-2 text-sm text-left hover:bg-gray-100" data-value="private">
+                Private
+              </button>
+            </li>
+          </ul>
+        </div>
+      </div>
     
     <button class="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors" type="submit">
       <% if (locals.post) { %>Update<% } else {%>Publish<%}%>
@@ -100,7 +130,6 @@
 <input type="file" id="fileInput" accept="image/*" class="hidden">
 
 <script>
-// Image Store
 // Image Store
 const ImageStore = {
   images: [],
