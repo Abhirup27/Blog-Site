@@ -170,7 +170,7 @@ createDatabase(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASSWORD
     .then(() => {
          const {db} = require('./database');
         const { User, Post, Image, PostImage } = db;
-        db.sequelize.sync({force:true}).then((req) => {
+        db.sequelize.sync().then((req) => {
 
             app.listen(port, () => {
                 console.log("server running");
@@ -275,7 +275,7 @@ app.post('/login', async (req, res) => {
 
             const headers = req.headers;
             const socket = req.socket;
-
+            console.log(req.body);
             
             //let user = findUser(users, { headers, socket }, req.sessionID)
             const user = await verifyUser(req.sessionID, getClientIp({ headers, socket }), User);
@@ -296,7 +296,7 @@ app.post('/login', async (req, res) => {
                         userid: user.dataValues.username,
                         title: req.body.Title,
                         content: sanitizedHtml,
-                        visibility: 'public',
+                        visibility: req.body.visibility,
                         createdAt: new Date().toISOString(),
                         modifiedAt: new Date().toISOString()
                     };
@@ -344,7 +344,7 @@ app.post('/login', async (req, res) => {
             const imageData = await getImages(foundPost.p_id, PostImage);
             console.log(imageData);
             const processedHtml = await processHtml(foundPost.content, imageData,Image);
-            console.log("This is the processed HTML!!" +processedHtml);
+            console.log("This is the processed HTML " +processedHtml);
             res.render("post.ejs", {
                 post: {p_id: foundPost.p_id, title:foundPost.title, content: processedHtml,username:foundPost.username,created_at: foundPost.created_at,updated_at:foundPost.updated_at},
                 editable: isEditable,

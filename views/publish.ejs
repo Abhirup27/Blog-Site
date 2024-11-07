@@ -150,6 +150,10 @@ const uploadButton = document.getElementById('uploadButton');
 const publishForm = document.getElementById('publishForm');
 const hiddenBody = document.getElementById('hiddenBody');
 const imageDataInput = document.getElementById('imageData');
+const visibilityButton = document.getElementById('visibilityButton');
+const visibilityDropdown = document.getElementById('visibilityDropdown');
+const currentVisibility = document.getElementById('currentVisibility');
+const visibilityInput = document.getElementById('visibilityInput');
 
 // Initialize editor content
 document.addEventListener('DOMContentLoaded', () => {
@@ -398,5 +402,26 @@ function processContent() {
     images: ImageStore.images
   };
 }
+
+  visibilityButton.addEventListener('click', () => {
+    visibilityDropdown.classList.toggle('hidden');
+  });
+
+  // Handle option selection
+  visibilityDropdown.querySelectorAll('button').forEach(button => {
+    button.addEventListener('click', () => {
+      const value = button.dataset.value;
+      visibilityInput.value = value;
+      currentVisibility.textContent = button.textContent.trim();
+      visibilityDropdown.classList.add('hidden');
+    });
+  });
+
+  // Close dropdown when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!visibilityButton.contains(e.target) && !visibilityDropdown.contains(e.target)) {
+      visibilityDropdown.classList.add('hidden');
+    }
+  });
 </script>
 <%- include("partials/footer.ejs") %>

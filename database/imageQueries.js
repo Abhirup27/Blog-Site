@@ -11,7 +11,6 @@ async function getImages(postId, PostImage) {
 
         })
 
-        console.log("THIS IS THE RESULT!!"+ result.dataValues)
         return result;
     }
     catch (err)
