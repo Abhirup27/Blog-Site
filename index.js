@@ -21,11 +21,13 @@ const multer = require('multer');
 const cheerio = require('cheerio');
 const sanitizeHtml = require('sanitize-html');
 
+const jwt = require("jsonwebtoken")
+
 //const { User, Post} = require('./database/models');
 
 const { Sequelize } = require('sequelize');
 const { getPostsLists, getPost, createPost, updatePost, deletePost, getUserLogin, setUserInfo, verifyUser, newUserRegister, createDatabase,
-        getImages, storeImage, getImagePath, createImageLink } = require('db-handler');
+        getImages, storeImage, getImagePath, createImageLink, getRefreshToken } = require('db-handler');
 
 
 function generateUUID(id, postTitle, date)
@@ -43,41 +45,7 @@ function generateUUID(id, postTitle, date)
     return `${uuid.substr(0,8)}-${uuid.substr(8,4)}-${uuid.substr(12,4)}-${uuid.substr(16,4)}-${uuid.substr(20,12)}`;
 }
 
-// stub Database need to update later     
-let users = [{
-    id: "1",
-    username: "admin",
-    password: "1234",
-    email: "admin@example.com",
-    lastLoginIp: "",
-    session: "",
-    posts: [{
-        title: "TEST",
-        id: uuid(),
-        content: "This is a sample text.",
-        createdAt: "2024-09-14T12:00:00Z",
-        updatedAt: "2024-09-14T12:00:00Z"
-    }],
-    createdAt: "2024-09-14T12:00:00Z",
-    updatedAt: "2024-09-14T12:00:00Z"
-},
-{
-    id: "2",
-    username: "admin2",
-    password: "12345",
-    email: "admin2@example.com",
-    lastLoginIp: "",
-    session: "",
-    posts: [{
-        title: "TEST2",
-        id: uuid(),
-        content: "This is a sample text.2",
-        createdAt: "2024-09-14T12:00:00Z",
-        updatedAt: "2024-09-14T12:00:00Z"
-    }],
-    createdAt: "2024-09-14T12:00:00Z",
-    updatedAt: "2024-09-14T12:00:00Z"
-}];
+
 /* ====================================*/
 
 const app = express();
@@ -199,7 +167,25 @@ createDatabase(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASSWORD
         } else {
             res.render("index.ejs");
         }
-    });
+        });
+        
+function verifyToken(req, res, next)
+{
+    const authHeader = req.headers['authorization']
+    const token = authHeader && authHeader.split(' ')[1]; //BEARER token
+    if (token == null) return res.sendStatus(401);
+
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
+        
+        if (err) return res.sendStatus(403);
+        req.user = user;
+        next()
+    })
+}
+function generateAccessToken(user)
+{
+    return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET,{expiresIn:'25s'});
+}
 
 app.post('/login', async (req, res) => {
     const { username, password } = req.body;
@@ -362,27 +348,6 @@ app.post('/login', async (req, res) => {
             findPost({ id, users, headers, socket, sessionid, res }, true, verifyUser, getPost, User, Post);
 
         });
-
-        // function updatePost(user, postId, newTitle, newContent) {
-        //     const postIndex = user.posts.findIndex(post => post.id === postId);
-        //     if (postIndex !== -1) {
-        //         user.posts[postIndex].title = newTitle;
-        //         user.posts[postIndex].content = newContent;
-        //         user.posts[postIndex].updatedAt = new Date().toISOString();
-        //         return true;
-        //     }
-        //     return false;
-        // }
-
-        // function deletePost(user, postId) {
-        //     const postIndex = user.posts.findIndex(post => post.id === postId);
-        //     if (postIndex !== -1) {
-        //         user.posts.splice(postIndex, 1);
-        //         user.updatedAt = new Date().toISOString();
-        //         return true;
-        //     }
-        //     return false;
-        // }
 
         app.post("/update", async(req, res) => {
             //check if post id already exists in the DB, then make changes.

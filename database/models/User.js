@@ -15,6 +15,10 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       unique: true
     },
+     verified: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false
+    },
     name: DataTypes.STRING(100),
     bio: DataTypes.TEXT,
     ip_addr: DataTypes.STRING(45),

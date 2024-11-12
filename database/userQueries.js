@@ -84,5 +84,33 @@ async function newUserRegister(userid, email, passwd, name, User) {
         return false;
     }
 }
-
-module.exports = { getUserLogin, verifyUser, setUserInfo, newUserRegister };
+async function getRefreshToken(token, RefreshToken)
+{
+    try {
+        const refresh_token = await RefreshToken.findOne({
+            where: {
+                refresh_token: token
+            }
+        });
+        return refresh_token;
+    } catch (err)
+    {
+        console.error(err);
+        throw err;
+    }
+}
+async function setToken(token, RefreshToken)
+{
+    try {
+        const result = await RefreshToken.create({
+            refresh_token: token
+        })
+        return result;
+    }
+    catch (err)
+    {
+        console.error(err);
+        throw err;
+    }
+}
+module.exports = { getUserLogin, verifyUser, setUserInfo, newUserRegister, getRefreshToken, setToken };
