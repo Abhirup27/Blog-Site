@@ -27,7 +27,8 @@ const jwt = require("jsonwebtoken")
 
 const { Sequelize } = require('sequelize');
 const { getPostsLists, getPost, createPost, updatePost, deletePost, getUserLogin, setUserInfo, verifyUser, newUserRegister, createDatabase,
-        getImages, storeImage, getImagePath, createImageLink, getRefreshToken } = require('db-handler');
+        getImages, storeImage, getImagePath, createImageLink, getRefreshToken, setToken } = require('db-handler');
+
 
 
 function generateUUID(id, postTitle, date)
@@ -137,7 +138,7 @@ app.use((error, req, res, next) => {
 createDatabase(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASSWORD, process.env.DB_HOST)
     .then(() => {
          const {db} = require('./database');
-        const { User, Post, Image, PostImage } = db;
+        const { User, Post, Image, PostImage, RefreshToken } = db;
         db.sequelize.sync().then((req) => {
 
             app.listen(port, () => {
@@ -184,7 +185,7 @@ function verifyToken(req, res, next)
 }
 function generateAccessToken(user)
 {
-    return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET,{expiresIn:'25s'});
+    return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {expiresIn:'1800s'});
 }
 
 app.post('/login', async (req, res) => {
@@ -200,7 +201,17 @@ app.post('/login', async (req, res) => {
         
         if (user) {
             const postsWithoutContent = await getPostsLists({username: user.username}, user.username, Post);
-            
+            const accessToken = generateAccessToken({name: user.username});
+            const refreshToken =  await jwt.sign( {name: user.username}, process.env.REFRESH_TOKEN_SECRET);
+            console.log(refreshToken);
+            const result = await setToken(refreshToken, RefreshToken);
+            res.cookie('accessToken', accessToken, {
+                        maxAge: 1800000, //~ 1 hour
+                        httpOnly: true,
+                        secure: process.env.NODE_ENV === 'production',
+                        sameSite: 'strict'
+                        });
+
             res.render("posts.ejs", {
                 posts: postsWithoutContent,
                 logged: true,
