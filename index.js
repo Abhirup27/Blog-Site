@@ -2,9 +2,7 @@ const dotenv = require("dotenv");
 dotenv.config();
 const express = require("express");
 const bodyparser = require("body-parser");
-const { formatDate } = require("utils");
-const { processHtml } = require("utils");
-const { findUser, findPost, getPostsList, getClientIp } = require("utils/userIdentification");
+
 //const { getConnection } = require("db-handler/connection-handler");
 const json = require("json");
 const { v4: uuid } = require('uuid');
@@ -28,7 +26,9 @@ const jwt = require("jsonwebtoken")
 const { Sequelize } = require('sequelize');
 const { getPostsLists, getPost, createPost, updatePost, deletePost, getUserLogin, setUserInfo, verifyUser, newUserRegister, createDatabase,
         getImages, storeImage, getImagePath, createImageLink, getRefreshToken, setToken } = require('db-handler');
-
+const { formatDate } = require("utils");
+const { processHtml } = require("utils");
+const { findUser, findPost, getPostsList, getClientIp } = require("utils/userIdentification");
 
 
 function generateUUID(id, postTitle, date)
@@ -153,6 +153,8 @@ createDatabase(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASSWORD
         const headers = req.headers;
         const socket = req.socket;
             //let user = findUser(users, { headers, socket }, req.sessionID)
+            console.log(req.cookies.accessToken)
+            console.log(req.sessionID);
             const user = await verifyUser(req.sessionID, getClientIp({ headers, socket }), User);
         
         if (user) {
