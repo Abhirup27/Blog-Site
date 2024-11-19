@@ -12,6 +12,8 @@ const cookieParser = require("cookie-parser");
 
 const { fileURLToPath } = require('url');
 
+const {sendMail} = require('utils/mail-verifier');
+
 const { dirname, join } = require('path');
 const path = require('path');
 const fs = require('fs');
@@ -149,6 +151,26 @@ createDatabase(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASSWORD
 
 
         app.get("/", async (req, res) => {
+        // const smtp = new SMTPClient('smtp.gmail.com', {
+        //     port: 587,  // SSL port
+        //     username: 'abhirup@gmail.com',
+        //     password: ,
+        //     debug: true // Set to true to see SMTP communication
+        // });
+
+        // try {
+        //     await smtp.sendMail(
+        //         '27abhirup@gmail.com',
+        //         'abhirup27@outlook.com',
+        //         'Test123',
+        //         'This is the email body.'
+        //     );
+        //     console.log('Email sent successfully');
+        // } catch (error) {
+        //     console.error('Failed to send email:', error);
+            // }
+        
+            sendMail({ to: '2@outlook.com', subject: 'test', text: 'test this is' });
 
         const headers = req.headers;
         const socket = req.socket;

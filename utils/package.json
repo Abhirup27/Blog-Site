@@ -10,6 +10,7 @@
     "index.js",
     "dateUtils.js",
     "userIdentification.js",
-    "processPost.js"
+    "processPost.js",
+    "mail-verifier.js"
   ]
 }
