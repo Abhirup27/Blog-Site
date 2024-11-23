@@ -151,47 +151,27 @@ createDatabase(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASSWORD
 
 
         app.get("/", async (req, res) => {
-        // const smtp = new SMTPClient('smtp.gmail.com', {
-        //     port: 587,  // SSL port
-        //     username: 'abhirup@gmail.com',
-        //     password: ,
-        //     debug: true // Set to true to see SMTP communication
-        // });
 
-        // try {
-        //     await smtp.sendMail(
-        //         '27abhirup@gmail.com',
-        //         'abhirup27@outlook.com',
-        //         'Test123',
-        //         'This is the email body.'
-        //     );
-        //     console.log('Email sent successfully');
-        // } catch (error) {
-        //     console.error('Failed to send email:', error);
-            // }
-        
+            const headers = req.headers;
+            const socket = req.socket;
+                //let user = findUser(users, { headers, socket }, req.sessionID)
+                console.log(req.cookies.accessToken)
+                console.log(req.sessionID);
+                const user = await verifyUser(req.sessionID, getClientIp({ headers, socket }), User);
             
-
-        const headers = req.headers;
-        const socket = req.socket;
-            //let user = findUser(users, { headers, socket }, req.sessionID)
-            console.log(req.cookies.accessToken)
-            console.log(req.sessionID);
-            const user = await verifyUser(req.sessionID, getClientIp({ headers, socket }), User);
+            if (user) {
+            
+                //const postsWithoutContent = getPostsList(undefined,user);
+                const postsWithoutContent = await getPostsLists({ username: user.dataValues.username }, user.dataValues.username, Post);
+                res.render("posts.ejs", {
+                    posts: postsWithoutContent,
+                    logged: true,
+                    formatDate: formatDate
+                });
         
-        if (user) {
-           
-            //const postsWithoutContent = getPostsList(undefined,user);
-            const postsWithoutContent = await getPostsLists({ username: user.dataValues.username }, user.dataValues.username, Post);
-            res.render("posts.ejs", {
-                posts: postsWithoutContent,
-                logged: true,
-                formatDate: formatDate
-            });
-    
-        } else {
-            res.render("index.ejs");
-        }
+            } else {
+                res.render("index.ejs");
+            }
         });
         
 function verifyToken(req, res, next)
