@@ -20,7 +20,15 @@ async function getUserLogin(userid, passwd, ipaddr, sessionid, User) {
         return null;
     }
 }
+async function removeUser(userid)
+{
 
+}
+
+async function getUsersV()
+{
+    
+}
 async function verifyUser(sessionid, ipaddr, User) {
   
     try {

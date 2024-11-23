@@ -1,138 +1,6 @@
-// const tls = require('tls');
-// const fs = require('fs');
-// class SMTPClient {
-
-//     constructor(host, options = {})
-//     {
-//         this.host = host;
-//         this.port = options.port || 465;
-//         this.username = options.username;
-//         this.password = options.password;
-//         this.debug = options.debug || false;
-//     }
-
-//     async connect()
-//     {
-//         return new Promise((resolve, reject) => {
-//             const options = {
-//                 host: this.host,
-//                 port: this.port,
-//                 rejectUnauthorized: true,
-//                 key: fs.readFileSync('C:\\Users\\Abhirup\\key.pem'),
-//                 cert: fs.readFileSync('C:\\Users\\Abhirup\\cert.pem'),
-//                 //maxVersion:'TLSv1.2',
-
-//        // Maximum TLS version
-           
-//                 ciphers: 'HIGH:MEDIUM:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!SRP:!CAMELLIA'
-//             };
-
-//             this.socket = tls.connect(options, () => {
-//                 if (this.debug) {
-//                     console.log('SSL/TLS connection established');
-//                     console.log('Protocol version:', this.socket.getProtocol());
-//                 }
-//                 resolve();
-//             });
-
-//             this.socket.on('error', (err) => {
-//                 if (this.debug) {
-//                     console.error('Socket error:', err);
-//                 }
-//                 reject(err);
-//             });
-
-//             if (this.debug) {
-//                 this.socket.on('data', (data) => {
-//                     console.log('recieved', data.toString().trim());
-
-//                 });
-//             }
-//         });
-//     }
-//     async sendCommand(command)
-//     {
-//         return new Promise((resolve, reject) => {
-            
-//             if (this.debug && command.substring(0, 4) !== 'AUTH')
-//             {
-//                 console.log('Sending: ', command);
-//             }
-//             this.socket.write(command + '\r\n');
-//             this.socket.once('data', (data) => {
-//                 const response = data.toString();
-//                 const code = parseInt(response.substring(0, 3));
-//                 if (code >= 200 & code < 400)
-//                 {
-//                     resolve(response)
-//                 }
-//                 else {
-//                     reject(new Error(`SMTP Error: ${response}`));
-
-//                 }
-//             })
-//         })
-//     }
-
-//     async authenticate()
-//     {
-//         if (!this.username || !this.password)
-//         {
-//             throw new Error('Authentication credentials not provided');
-
-//         }
-//         await this.sendCommand('AUTH LOGIN');
-
-//         await this.sendCommand(Buffer.from(this.username).toString('base64'));
-
-//     }
-
-//     async sendMail(from, to, subject, body)
-//     {
-//         try {
-//             await this.connect();
-
-//             await this.sendCommand('EHLO localhost');
-
-//             if (this.username && this.password)
-//             {
-//                 await this.authenticate();
-
-//             }
-//             await this.sendCommand(`MAIL FROM:<${from}>`);
-//             await this.sendCommand(`RCPT TO:<${to}>`);
-
-//             await this.sendCommand('DATA');
-//             const message = [
-//                 `From: ${from}`,
-//                 `To: ${To}`,
-//                 `Subject: ${subject}`,
-//                 'MIME-Version: 1.0',
-//                 'Content-Type: text/plain; charset=utf-8',
-//                 `Date: ${new Date().toUTCString()}`,
-//                 '',
-//                 body,
-//                 '.',
-//             ].join('\r\n');
-
-//             await this.sendCommand(message);
-
-//             await this.sendCommand('QUIT');
-//             this.socket.end();
-
-//             return true;
-
-//         } catch (error)
-//         {
-//             this.socket?.end();
-//             throw error;
-//         }
-//     }
-// }
-
 
 // module.exports = SMTPClient;
-
+const { v4: uuid } = require('uuid');
 const nodemailer = require('nodemailer');
 const transporter = nodemailer.createTransport({
   host: 'smtp.gmail.com', 
@@ -146,14 +14,16 @@ const transporter = nodemailer.createTransport({
 
 
 
-async function sendMail(data)
+async function sendMail(data,User)
 {
-    try {
+  try {
+    const { verificationCode, token } = createVerificationEntry(data.username, data.to,User);
+    const link = (process.env.BASE_URL || 'http://localhost:8080') + '/verify?token='+ token+'&code='+verificationCode;
         const mailOptions = {
             from: process.env.EMAIL_USER,
             to: data.to,
             subject: data.subject,
-            text: data.text,
+            text: link,
             //html: html // Optional HTML content
     };
         const info = await transporter.sendMail(mailOptions);
@@ -167,4 +37,77 @@ async function sendMail(data)
 }
 
 
-module.exports = { sendMail };
+const verificationTokens = {};
+
+function generateVerificationCode() {
+    console.log('email verification code = '+Math.floor(100000 + Math.random() * 900000).toString())
+    return Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit code
+  }
+
+  function createVerificationEntry(userId, email,User) {
+    const verificationCode = generateVerificationCode();
+    const token = uuid();
+    
+    // Store verification details
+    verificationTokens[userId] = {
+      email,
+      code: verificationCode,
+      token,
+      createdAt: Date.now()
+    };
+
+    // Set timer to check and potentially remove unverified user
+    startVerificationTimer(userId,User);
+
+    return { verificationCode, token };
+  }
+
+  function startVerificationTimer(userId, User) {
+  const VERIFICATION_TIMEOUT = 1 * 60 * 1000;
+  
+  const cleanupCallback = async function(User) {
+    try {
+      const user = await User.findByPk(userId);
+      
+      if (!user) {
+        console.log(`User ${userId} not found`);
+        return;
+      }
+      
+      if (!user.verified) {
+        await user.destroy();
+        delete verificationTokens[userId];
+        console.log(`Removed unverified user ${userId}`);
+      }
+    } catch (error) {
+      console.error('Verification cleanup error:', error);
+    }
+  }.bind(null, User);
+
+  setTimeout(cleanupCallback, VERIFICATION_TIMEOUT);
+}
+
+
+  async function verifyEmail(token, code, User) {
+    const verificationEntry = verificationTokens[token];
+    
+    if (!verificationEntry) {
+      throw new Error('No verification entry found');
+    }
+
+    if (verificationEntry.code !== code) {
+      throw new Error('Invalid verification code');
+    }
+
+    // Mark user as verified
+    const user = await User.findByPk(token);
+    user.verified = true;
+    await user.destroy();
+
+    // Clean up verification token
+    delete verificationTokens[token];
+
+    return true;
+  }
+
+module.exports = { sendMail,generateVerificationCode,startVerificationTimer,verifyEmail };

@@ -12,7 +12,7 @@ const cookieParser = require("cookie-parser");
 
 const { fileURLToPath } = require('url');
 
-const {sendMail} = require('utils/mail-verifier');
+const {sendMail,generateVerificationCode,startVerificationTimer,verifyEmail} = require('utils/mail-verifier');
 
 const { dirname, join } = require('path');
 const path = require('path');
@@ -170,7 +170,7 @@ createDatabase(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASSWORD
         //     console.error('Failed to send email:', error);
             // }
         
-            sendMail({ to: '2@outlook.com', subject: 'test', text: 'test this is' });
+            
 
         const headers = req.headers;
         const socket = req.socket;
@@ -257,6 +257,7 @@ app.post('/login', async (req, res) => {
 
             if (user)
             {
+                sendMail({username:username, to: email, subject: 'Verification for account creation', text: 'test this is' });
                 res.render("index.ejs", { message: "Verification mail sent to your email. Verify to keep your account!" });
             }
             else {
@@ -559,6 +560,15 @@ app.post('/login', async (req, res) => {
             }
         });
         
+        app.get('/verify', async (req, res) => {
+            const uuid = req.query.token;
+            const code = req.query.verificationCode;
+
+
+            await verifyEmail(uuid, code, User);
+
+        });
+
         app.get('/hidden', (req, res) => {
             res.render("hidden.ejs");
         })
