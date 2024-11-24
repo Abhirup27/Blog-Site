@@ -11,6 +11,7 @@
         "userQueries.js",
         "postQueries.js",
         "imageQueries.js",
+        "verificationQueries.js",
         "./models/User.js",
         "./createDB.js",
         "./index.js"

@@ -20,14 +20,40 @@ async function getUserLogin(userid, passwd, ipaddr, sessionid, User) {
         return null;
     }
 }
-async function removeUser(userid)
+async function removeUser(userid, User)
 {
-
+    try {
+        return await User.destroy(
+            {
+                where: {
+                    username: userid
+                }
+            }
+        );
+    } catch (error)
+    {
+        console.error("error deleting user"+ error);
+        throw error;
+    }
 }
 
-async function getUsersV()
+async function getUsersV(userid, User)
 {
-    
+    try {
+        const foundUser = await User.findOne({
+            where: {
+                username:userid
+            },
+
+            attributes: ['username', 'created_at', 'verified']
+        })
+
+        return foundUser
+    } catch (error)
+    {
+        console.error("error getting user info:", error);
+        throw error;
+    }
 }
 async function verifyUser(sessionid, ipaddr, User) {
   
@@ -121,4 +147,4 @@ async function setToken(token, RefreshToken)
         throw err;
     }
 }
-module.exports = { getUserLogin, verifyUser, setUserInfo, newUserRegister, getRefreshToken, setToken };
+module.exports = { getUserLogin, verifyUser, setUserInfo, newUserRegister, getRefreshToken, setToken, removeUser, getUsersV };

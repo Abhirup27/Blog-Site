@@ -1,9 +1,10 @@
 'use strict';
 
-const { getUserLogin, setUserInfo, verifyUser, newUserRegister,getRefreshToken, setToken } = require('./userQueries');
+const { getUserLogin, setUserInfo, verifyUser, newUserRegister,getRefreshToken, setToken, removeUser, getUsersV  } = require('./userQueries');
 const { getPostsLists, getPost, createPost, updatePost, deletePost } = require('./postQueries');
 const { createDatabase } = require('./createDB');
-const { storeImage, getImages,createImageLink,getImagePath } = require('./imageQueries');
+const { storeImage, getImages, createImageLink, getImagePath } = require('./imageQueries');
+const { getToken, addToken, deleteToken } = require('./verificationQueries') ;
 const fs = require('fs');
 const path = require('path');
 const {Sequelize, DataTypes} = require('sequelize');
@@ -78,4 +79,4 @@ Object.keys(db).forEach(modelName => {
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
 
-module.exports = {getPostsLists, getPost, createPost, updatePost, deletePost, getUserLogin, setUserInfo, verifyUser,getRefreshToken, setToken, newUserRegister, createDatabase, storeImage, getImages, createImageLink,getImagePath,db};
+module.exports = {getPostsLists, getPost, createPost, updatePost, deletePost, getUserLogin, setUserInfo, verifyUser,getRefreshToken, setToken, newUserRegister, createDatabase, storeImage, getImages, createImageLink,getImagePath, removeUser, getUsersV,getToken, addToken, deleteToken ,db};

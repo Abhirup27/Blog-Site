@@ -2,6 +2,7 @@
 // module.exports = SMTPClient;
 const { v4: uuid } = require('uuid');
 const nodemailer = require('nodemailer');
+const { removeUser, getUsersV,setUserInfo } = require('db-handler');
 const transporter = nodemailer.createTransport({
   host: 'smtp.gmail.com', 
   port: 587,
@@ -63,19 +64,19 @@ function generateVerificationCode() {
   }
 
   function startVerificationTimer(userId, User) {
-  const VERIFICATION_TIMEOUT = 1 * 60 * 1000;
+  const VERIFICATION_TIMEOUT = 3 * 60 * 1000;
   
   const cleanupCallback = async function(User) {
     try {
-      const user = await User.findByPk(userId);
+      const user = await getUsersV(userId,User);
       
-      if (!user) {
+      if (!user.dataValues) {
         console.log(`User ${userId} not found`);
         return;
       }
       
-      if (!user.verified) {
-        await user.destroy();
+      if (!user.dataValues.verified) {
+        await removeUser(userId,User);
         delete verificationTokens[userId];
         console.log(`Removed unverified user ${userId}`);
       }
@@ -100,9 +101,8 @@ function generateVerificationCode() {
     }
 
     // Mark user as verified
-    const user = await User.findByPk(token);
-    user.verified = true;
-    await user.destroy();
+    const user = await setUserInfo('asd123', {verified:true},User);
+ 
 
     // Clean up verification token
     delete verificationTokens[token];

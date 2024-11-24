@@ -141,7 +141,7 @@ createDatabase(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASSWORD
     .then(() => {
          const {db} = require('./database');
         const { User, Post, Image, PostImage, RefreshToken } = db;
-        db.sequelize.sync().then((req) => {
+        db.sequelize.sync({force:true}).then((req) => {
 
             app.listen(port, () => {
                 console.log("server running");
