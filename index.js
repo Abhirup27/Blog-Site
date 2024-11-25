@@ -31,6 +31,7 @@ const { getPostsLists, getPost, createPost, updatePost, deletePost, getUserLogin
 const { formatDate } = require("utils");
 const { processHtml } = require("utils");
 const { findUser, findPost, getPostsList, getClientIp } = require("utils/userIdentification");
+const verificationToken = require("./database/models/verificationToken");
 
 
 function generateUUID(id, postTitle, date)
@@ -140,8 +141,9 @@ app.use((error, req, res, next) => {
 createDatabase(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASSWORD, process.env.DB_HOST)
     .then(() => {
          const {db} = require('./database');
-        const { User, Post, Image, PostImage, RefreshToken } = db;
-        db.sequelize.sync({force:true}).then((req) => {
+        const { User, Post, Image, PostImage, RefreshToken, VerificationToken } = db;
+
+        db.sequelize.sync().then((req) => {
 
             app.listen(port, () => {
                 console.log("server running");
@@ -237,7 +239,7 @@ app.post('/login', async (req, res) => {
 
             if (user)
             {
-                sendMail({username:username, to: email, subject: 'Verification for account creation', text: 'test this is' });
+                sendMail({username:username, to: email, subject: 'Verification for account creation', text: 'test this is' }, User, VerificationToken);
                 res.render("index.ejs", { message: "Verification mail sent to your email. Verify to keep your account!" });
             }
             else {
@@ -340,7 +342,7 @@ app.post('/login', async (req, res) => {
             let socket = req.socket;
             const sessionid = req.sessionID
             const id = req.params.id; // id of the post
-            const { foundPost, isEditable, userReq } = await findPost({ id, users, headers, socket, sessionid }, false, verifyUser, getPost, User, Post);
+            const { foundPost, isEditable, userReq } = await findPost({ id, headers, socket, sessionid }, false, verifyUser, getPost, User, Post);
             console.log(foundPost.p_id);
             
             const imageData = await getImages(foundPost.p_id, PostImage);
@@ -361,7 +363,7 @@ app.post('/login', async (req, res) => {
             let socket = req.socket;
             const sessionid = req.sessionID
             const id = req.params.id; // id of the post
-            findPost({ id, users, headers, socket, sessionid, res }, true, verifyUser, getPost, User, Post);
+            findPost({ id, headers, socket, sessionid, res }, true, verifyUser, getPost, User, Post);
 
         });
 
@@ -402,7 +404,7 @@ app.post('/login', async (req, res) => {
                             //const id = element.src.replace('http://localhost:8080/uploads/', '');
                             const id = element.src.substring(element.src.lastIndexOf('/') + 1);
                             console.log(id);
-                            await createImageLink({ i_id: id, p_id: newPost.id, width: element.width, height: element.height }, PostImage);
+                            await createImageLink({ i_id: id, p_id: generateUUID(user.dataValues.username, Title, user.dataValues.createdAt), width: element.width, height: element.height }, PostImage,Image);
                         });
                         res.clearCookie('editingPostId');
                         res.render("posts.ejs", {

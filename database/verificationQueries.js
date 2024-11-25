@@ -23,13 +23,14 @@ async function getToken(token, VerificationToken)
 }
 
 
-async function addToken(userid,token, VerificationToken)
+async function addToken(userid,token,code, VerificationToken)
 {
     try {
         const result = await VerificationToken.create(
             {
                 token: token,
-                username:userid
+                username: userid,
+                code:code
             }
         );
 
@@ -46,10 +47,10 @@ async function addToken(userid,token, VerificationToken)
 async function deleteToken(token, VerificationToken)
 {
     try {
-        const result = await verificationToken.destroy(
+        const result = await VerificationToken.destroy(
             {
                 where: {
-                    token:token
+                    ...token
                 }
             }
         )

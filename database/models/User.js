@@ -32,7 +32,7 @@ module.exports = (sequelize, DataTypes) => {
    User.associate = (models) => {
     User.hasMany(models.Post, { foreignKey: 'username' });
      User.hasMany(models.Image, { foreignKey: 'username' });
-     User.hasOne(models.verificationToken, { foreignKey: 'username' });
+     //User.hasOne(models.verificationToken, { foreignKey: 'username' });
   };
 
   return User;

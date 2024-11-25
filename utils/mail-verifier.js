@@ -2,7 +2,8 @@
 // module.exports = SMTPClient;
 const { v4: uuid } = require('uuid');
 const nodemailer = require('nodemailer');
-const { removeUser, getUsersV,setUserInfo } = require('db-handler');
+const { removeUser, getUsersV,setUserInfo,addToken, deleteToken } = require('db-handler');
+//const verificationToken = require('../database/models/verificationToken');
 const transporter = nodemailer.createTransport({
   host: 'smtp.gmail.com', 
   port: 587,
@@ -15,10 +16,10 @@ const transporter = nodemailer.createTransport({
 
 
 
-async function sendMail(data,User)
+async function sendMail(data,User, VerificationToken)
 {
   try {
-    const { verificationCode, token } = createVerificationEntry(data.username, data.to,User);
+    const { verificationCode, token } = createVerificationEntry(data.username,User,VerificationToken);
     const link = (process.env.BASE_URL || 'http://localhost:8080') + '/verify?token='+ token+'&code='+verificationCode;
         const mailOptions = {
             from: process.env.EMAIL_USER,
@@ -38,33 +39,34 @@ async function sendMail(data,User)
 }
 
 
-const verificationTokens = {};
+let verificationTokens = {};
 
 function generateVerificationCode() {
     console.log('email verification code = '+Math.floor(100000 + Math.random() * 900000).toString())
     return Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit code
   }
 
-  function createVerificationEntry(userId, email,User) {
+  async function createVerificationEntry(userId,User,VerificationToken) {
     const verificationCode = generateVerificationCode();
     const token = uuid();
     
     // Store verification details
-    verificationTokens[userId] = {
-      email,
-      code: verificationCode,
-      token,
-      createdAt: Date.now()
-    };
+    // verificationTokens[userId] = {
+    //   email,
+    //   code: verificationCode,
+    //   token,
+    //   createdAt: Date.now()
+    // };
+    const result = await addToken(userId,token, verificationCode, VerificationToken)
 
     // Set timer to check and potentially remove unverified user
-    startVerificationTimer(userId,User);
+    startVerificationTimer(userId,User, VerificationToken);
 
     return { verificationCode, token };
   }
 
-  function startVerificationTimer(userId, User) {
-  const VERIFICATION_TIMEOUT = 3 * 60 * 1000;
+  function startVerificationTimer(userId,User,VerificationToken) {
+  const VERIFICATION_TIMEOUT = 0.5 * 60 * 1000;
   
   const cleanupCallback = async function(User) {
     try {
@@ -76,14 +78,15 @@ function generateVerificationCode() {
       }
       
       if (!user.dataValues.verified) {
+        await deleteToken({username:userId}, VerificationToken)
         await removeUser(userId,User);
-        delete verificationTokens[userId];
+        //delete verificationTokens[userId];
         console.log(`Removed unverified user ${userId}`);
       }
     } catch (error) {
       console.error('Verification cleanup error:', error);
     }
-  }.bind(null, User);
+  }.bind(null, User,VerificationToken);
 
   setTimeout(cleanupCallback, VERIFICATION_TIMEOUT);
 }
@@ -105,7 +108,7 @@ function generateVerificationCode() {
  
 
     // Clean up verification token
-    delete verificationTokens[token];
+    //delete verificationTokens[token];
 
     return true;
   }

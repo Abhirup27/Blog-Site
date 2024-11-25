@@ -6,15 +6,28 @@ module.exports = (sequelize, DataTypes) => {
       unique: true,
       primaryKey: true
     },
+    code: {
+      type: DataTypes.INTEGER({
+            validate: {
+                min: 100000,  // 6 digits start at 100000
+                max: 999999   // Maximum 6-digit number
+            }
+      }),
+      allowNull: false,
+    },
     username: {
     type: DataTypes.STRING(50),
       allowNull: false,
       unique: true,
     }
   }, {
-    tableName: 'VerificationTokens'
+ 
+    tableName: 'VerificationTokens',
+    timestamps: true,
+    createdAt: 'createdAt',
+    updatedAt: false
   });
-     verificationToken.associate = (models) => {
+    verificationToken.associate = (models) => {
     verificationToken.belongsTo(models.User, { foreignKey: 'username' });
     };
 
