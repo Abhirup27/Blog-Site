@@ -544,10 +544,11 @@ app.post('/login', async (req, res) => {
         
         app.get('/verify', async (req, res) => {
             const uuid = req.query.token;
-            const code = req.query.verificationCode;
+            const code = req.query.code;
 
-
-            await verifyEmail(uuid, code, User);
+            console.log("Verification code:", code);
+            await verifyEmail(uuid, code, User, VerificationToken);
+            res.redirect('/');
 
         });
 
