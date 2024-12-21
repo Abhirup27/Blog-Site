@@ -49,6 +49,16 @@ function generateUUID(id, postTitle, date)
     return `${uuid.substr(0,8)}-${uuid.substr(8,4)}-${uuid.substr(12,4)}-${uuid.substr(16,4)}-${uuid.substr(20,12)}`;
 }
 
+function generateUUID(filename, userid)
+{
+    const hash = crypto.createHash('sha1');
+
+    const data = `${filename}${userid}`;
+    hash.update(data);
+    const uuid = hash.digest('hex');
+
+    return uuid;
+}
 
 /* ====================================*/
 
@@ -103,8 +113,12 @@ const storage = multer.diskStorage({
 
     // Create unique filename with original extension
 
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
+    //const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    //cb(null, uniqueSuffix + path.extname(file.originalname));
+      
+    const hashedName = generateUUID(file.originalname, userId);
+    cb(null, hashedName + fileExtension);
+      
   }
 });
 
@@ -378,6 +392,8 @@ app.post('/login', async (req, res) => {
             if (user) {
                 const { Title, Body } = req.body;
                 const postId = req.cookies.editingPostId;
+
+                const oldPost = await getPost(Post, { p_id: postId }, user.dataValues.username);
 
                 if (postId && Title && Body) {
                      const sanitizedHtml = sanitizeHtml(Body, {

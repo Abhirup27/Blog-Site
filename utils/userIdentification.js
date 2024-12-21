@@ -24,8 +24,8 @@
  async function findPost(data, toEdit, verifyUser, getPost,User, Post)
 {
     const postId = data.id;
-    let foundPost = null;
-    let isEditable = false;
+   // let foundPost = null;
+    //let isEditable = false;
     const { headers, socket } = data;
      //const userReq = findUser(data.users, { headers, socket }, data.sessionid);
      const ipAddress = getClientIp({ headers, socket });

@@ -52,13 +52,7 @@ function generateVerificationCode() {
     const verificationCode = generateVerificationCode();
     const token = uuid();
     console.log(verificationCode, token);
-    // Store verification details
-    // verificationTokens[userId] = {
-    //   email,
-    //   code: verificationCode,
-    //   token,
-    //   createdAt: Date.now()
-    // };
+
     const result = await addToken(userId,token, verificationCode, VerificationToken)
 
     // Set timer to check and potentially remove unverified user
